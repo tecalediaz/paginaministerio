@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ConditionalFooter } from "@/components/ConditionalFooter";
 import { Header } from "@/components/Header";
 import { site } from "@/content/site";
-import { antenna } from "@/lib/fonts";
+import { antenna, burgerFree, moreSugar } from "@/lib/fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -37,7 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="es-AR"
-      className={`${antenna.variable} h-full antialiased`}
+      className={`${antenna.variable} ${moreSugar.variable} ${burgerFree.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col font-sans">
         <Header />

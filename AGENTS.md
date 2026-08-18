@@ -7,3 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+# Agencia — sitio MDIIS La Rioja
+
+Antes de cambiar UI, tipografías, la home (`/`) o `/mes-de-las-infancias`, seguir `.cursor/skills/mdiis-identidad/`. La home es una sola pantalla institucional que inaugura el Mes de las Infancias (`home.md`). Festipeques/F.E.S. viven en `/mes-de-las-infancias` (`campana.md`).
