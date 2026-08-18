@@ -1,0 +1,7 @@
+{
+  "git.autoRepositoryDetection": false,
+  "git.openRepositoryInParentFolders": "never",
+  "git.ignoredRepositories": [
+    "/Users/tecalediaz/.cursor/plugins/cache/cursor-public/figma/30b6fe64af0a4b3efb75e76a99f3c96eece2457a"
+  ]
+}

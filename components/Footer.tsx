@@ -66,7 +66,7 @@ export function Footer() {
               href="/mes-de-las-infancias"
               className="text-sm font-semibold text-accent transition-opacity hover:opacity-85"
             >
-              Agosto, Mes de las Infancias →
+              Festi Peques — Mes de las Infancias →
             </Link>
           </p>
         </div>

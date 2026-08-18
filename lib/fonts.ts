@@ -1,8 +1,7 @@
-import { Baloo_2, Fredoka } from "next/font/google";
 import localFont from "next/font/local";
 
 /**
- * Antenna (Ford Antenna) — pesos usados en UI.
+ * Antenna (Ford Antenna) — pesos usados en UI institucional.
  * Archivos en /fonts/antenna (fuera de public: next/font los self-hostea).
  */
 export const antenna = localFont({
@@ -44,18 +43,20 @@ export const antenna = localFont({
   adjustFontFallback: "Arial",
 });
 
-/** Tipografía lúdica para Mes de las Infancias */
-export const fredoka = Fredoka({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-fredoka",
+/** Display de campaña Festipeques */
+export const moreSugar = localFont({
+  src: "../fonts/festipeques/MoreSugar-Regular.ttf",
+  variable: "--font-more-sugar",
   display: "swap",
+  weight: "400",
+  fallback: ["ui-rounded", "system-ui", "sans-serif"],
 });
 
-/** Display más divertido para el título del teaser */
-export const baloo = Baloo_2({
-  subsets: ["latin"],
-  weight: ["600", "700", "800"],
-  variable: "--font-baloo",
+/** Títulos gordos de fajas y badges Festipeques */
+export const burgerFree = localFont({
+  src: "../fonts/festipeques/BurgerFree.ttf",
+  variable: "--font-burger",
   display: "swap",
+  weight: "400",
+  fallback: ["ui-rounded", "system-ui", "sans-serif"],
 });

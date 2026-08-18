@@ -21,20 +21,20 @@ export function InfanciasTeaser() {
         <span aria-hidden className="infancias-teaser__bg" />
         <span className="infancias-teaser__content">
           <span className="infancias-teaser__title block">
-            <span className="infancias-teaser__title-month">Agosto</span>
-            <span className="infancias-teaser__title-main">
-              Mes de las Infancias
+            <span className="infancias-teaser__title-month">
+              {infancias.campaign.tagline}
             </span>
+            <span className="infancias-teaser__title-main">Festi Peques</span>
           </span>
           <span className="infancias-teaser__footer">
             <span className="infancias-teaser__cta">
               {infancias.teaser.ctaLabel}
             </span>
             <Image
-              src="/infancias-ninos.svg"
+              src="/festipeques/cosmo.webp"
               alt=""
-              width={220}
-              height={140}
+              width={180}
+              height={290}
               className="infancias-teaser__kids"
               aria-hidden
               priority
