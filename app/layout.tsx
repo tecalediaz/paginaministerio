@@ -1,0 +1,49 @@
+import type { Metadata } from "next";
+import { ConditionalFooter } from "@/components/ConditionalFooter";
+import { Header } from "@/components/Header";
+import { site } from "@/content/site";
+import { antenna, baloo, fredoka } from "@/lib/fonts";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: {
+    default: `${site.fullName} | ${site.province}`,
+    template: `%s | ${site.shortName} — La Rioja`,
+  },
+  description:
+    "Próxima página oficial del Ministerio de Desarrollo, Igualdad e Integración Social de la Provincia de La Rioja. Agenda del Mes de las Infancias y novedades institucionales.",
+  metadataBase: new URL("https://desarrollosocial.larioja.gob.ar"),
+  icons: {
+    icon: [{ url: "/logo-gob-rioja.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/logo-gob-rioja.svg", type: "image/svg+xml" }],
+  },
+  openGraph: {
+    title: `${site.fullName} | ${site.province}`,
+    description:
+      "Sitio oficial en construcción. Conocé el Mes de las Infancias y las próximas novedades del Ministerio.",
+    locale: "es_AR",
+    type: "website",
+    siteName: site.fullName,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${site.fullName} | ${site.province}`,
+    description:
+      "Próxima página oficial del Ministerio. Agosto, Mes de las Infancias.",
+  },
+};
+
+export default function RootLayout({ children }: LayoutProps<"/">) {
+  return (
+    <html
+      lang="es-AR"
+      className={`${antenna.variable} ${fredoka.variable} ${baloo.variable} h-full antialiased`}
+    >
+      <body className="flex min-h-full flex-col font-sans">
+        <Header />
+        <main className="flex-1">{children}</main>
+        <ConditionalFooter />
+      </body>
+    </html>
+  );
+}
