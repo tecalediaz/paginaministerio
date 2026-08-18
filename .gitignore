@@ -22,7 +22,16 @@
 
 # misc
 .DS_Store
+Thumbs.db
 *.pem
+
+# originales de diseño (no van al sitio; los assets viven en /public)
+/RECURSOS FESTIPEQUES 2026/
+/MAQUETEADO WEB MDIIS.pdf
+/mes_de_las_infancias 44.pdf
+
+# temporales de scripts de texturas
+/scripts/tmp-*
 
 # debug
 npm-debug.log*

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ConditionalFooter } from "@/components/ConditionalFooter";
 import { Header } from "@/components/Header";
 import { site } from "@/content/site";
-import { antenna, baloo, fredoka } from "@/lib/fonts";
+import { antenna } from "@/lib/fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     template: `%s | ${site.shortName} — La Rioja`,
   },
   description:
-    "Próxima página oficial del Ministerio de Desarrollo, Igualdad e Integración Social de la Provincia de La Rioja. Agenda del Mes de las Infancias y novedades institucionales.",
+    "Sitio oficial del Ministerio de Desarrollo, Igualdad e Integración Social de la Provincia de La Rioja. Agenda social, institucional y contacto.",
   metadataBase: new URL("https://desarrollosocial.larioja.gob.ar"),
   icons: {
     icon: [{ url: "/logo-gob-rioja.svg", type: "image/svg+xml" }],
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: `${site.fullName} | ${site.province}`,
     description:
-      "Sitio oficial en construcción. Conocé el Mes de las Infancias y las próximas novedades del Ministerio.",
+      "Trabajamos por el bienestar y el progreso de La Rioja. Agenda social, institucional y contacto.",
     locale: "es_AR",
     type: "website",
     siteName: site.fullName,
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${site.fullName} | ${site.province}`,
     description:
-      "Próxima página oficial del Ministerio. Agosto, Mes de las Infancias.",
+      "Trabajamos por el bienestar y el progreso de La Rioja.",
   },
 };
 
@@ -37,11 +37,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="es-AR"
-      className={`${antenna.variable} ${fredoka.variable} ${baloo.variable} h-full antialiased`}
+      className={`${antenna.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col font-sans">
         <Header />
-        <main className="flex-1">{children}</main>
+        <main className="flex min-h-0 flex-1 flex-col">{children}</main>
         <ConditionalFooter />
       </body>
     </html>

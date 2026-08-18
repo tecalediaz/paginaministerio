@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  serverExternalPackages: ["@dimforge/rapier3d-compat"],
+  transpilePackages: ["meshline", "@react-three/rapier"],
 };
 
 export default nextConfig;

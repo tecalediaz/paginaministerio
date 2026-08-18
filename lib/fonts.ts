@@ -1,4 +1,3 @@
-import { Baloo_2, Fredoka } from "next/font/google";
 import localFont from "next/font/local";
 
 /**
@@ -42,20 +41,4 @@ export const antenna = localFont({
   display: "swap",
   fallback: ["system-ui", "Segoe UI", "Roboto", "sans-serif"],
   adjustFontFallback: "Arial",
-});
-
-/** Tipografía lúdica para Mes de las Infancias */
-export const fredoka = Fredoka({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-fredoka",
-  display: "swap",
-});
-
-/** Display más divertido para el título del teaser */
-export const baloo = Baloo_2({
-  subsets: ["latin"],
-  weight: ["600", "700", "800"],
-  variable: "--font-baloo",
-  display: "swap",
 });

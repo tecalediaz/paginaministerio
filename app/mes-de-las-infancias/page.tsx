@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 export default function MesDeLasInfanciasPage() {
   return (
     <>
-      <section className="relative isolate overflow-hidden bg-bg-deep pt-28 text-fg-on-dark sm:pt-32">
+      <section className="relative isolate overflow-hidden bg-bg-deep pt-10 text-fg-on-dark sm:pt-14">
         <div
           aria-hidden
           className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_0%,rgba(76,175,80,0.28),transparent_45%),linear-gradient(165deg,#3a3a3a_0%,#4a4a4a_55%,#333333_100%)]"
@@ -70,7 +70,10 @@ export default function MesDeLasInfanciasPage() {
         </div>
       </section>
 
-      <section className="border-t border-line bg-bg-soft/60 py-16 sm:py-20">
+      <section
+        id="agenda"
+        className="scroll-mt-24 border-t border-line bg-bg-soft/60 py-16 sm:py-20"
+      >
         <div className="section-shell">
           <Reveal>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-infancias">
