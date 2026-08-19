@@ -23,7 +23,8 @@ const ATLAS = 2048;
 const FRONT_UV = { x0: 0.0008521821, x1: 0.49889764, y0: 0.0042516, y1: 0.75483376 };
 const BACK_UV = { x0: 0.5014492869, x1: 0.9999332428, y0: 0.0022884607, y1: 0.7571759820 };
 
-const BODY = "#fbfbf9";
+const BODY = "#c5eaf8";
+const BODY_DEEP = "#8fd0ee";
 const BAND = "#23272b";
 const INK = "#1c2024";
 const NAVY = "#1e2a4a";
@@ -152,6 +153,39 @@ function labelledField(label, value, { x, y, valueSize = 30, valueWeight = "semi
   ].join("");
 }
 
+// MeshLine usa UV.x a lo largo de la tira y UV.y a lo ancho, así que la textura
+// tiene que ser apaisada (texto de izquierda a derecha). Una tira vertical
+// queda aplastada, espejada y con costuras al repetir.
+async function writeLanyardStrap() {
+  const STRAP_H = 128;
+  const strapUnit = outline(fonts.bold, "MDIIS \u00b7 LA RIOJA \u00b7 ", 36, 6.5);
+  const pad = 16;
+  const STRAP_W = Math.max(256, Math.round(strapUnit.width + pad));
+  const strapBaseline = Math.round(STRAP_H * 0.64);
+  const strap = Buffer.from(`
+<svg width="${STRAP_W}" height="${STRAP_H}" xmlns="http://www.w3.org/2000/svg">
+  <rect width="${STRAP_W}" height="${STRAP_H}" fill="${BAND}"/>
+  <rect x="0" y="0" width="${STRAP_W}" height="7" fill="#15181b"/>
+  <rect x="0" y="${STRAP_H - 7}" width="${STRAP_W}" height="7" fill="#15181b"/>
+  <rect x="0" y="14" width="${STRAP_W}" height="10" fill="${GREEN}"/>
+  <rect x="0" y="${STRAP_H - 24}" width="${STRAP_W}" height="10" fill="${RED}"/>
+  <path d="${strapUnit.d}" fill="#eef1f4" opacity="0.92" transform="translate(${pad / 2} ${strapBaseline})"/>
+</svg>`);
+  await sharp(strap).png().toFile(path.join(DEST, "lanyard-strap.png"));
+}
+
+await writeLanyardStrap();
+if (process.argv.includes("--strap-only")) {
+  console.log("lanyard-strap.png", Math.round(fs.statSync(path.join(DEST, "lanyard-strap.png")).size / 1024) + "kb");
+  process.exit(0);
+}
+
+const pvcGradient = (id = "pvc") =>
+  `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e3f6fd"/>
+      <stop offset="1" stop-color="${BODY_DEEP}"/>
+    </linearGradient>`;
+
 const tricolor = (y, h, w = FW) =>
   [
     `<rect x="0" y="${y}" width="${w * 0.42}" height="${h}" fill="${GREEN}"/>`,
@@ -240,13 +274,14 @@ const FIELDS_X = 458;
 const frontSvg = Buffer.from(`
 <svg width="${FW}" height="${FH}" xmlns="http://www.w3.org/2000/svg">
   <defs>
+    ${pvcGradient()}
     <linearGradient id="photoBg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#eaf6fc"/>
       <stop offset="1" stop-color="#cfe6f3"/>
     </linearGradient>
   </defs>
-  <rect width="${FW}" height="${FH}" fill="${BODY}"/>
-  ${guilloche({ x: -20, y: 372, w: FW + 40, h: 960, lines: 22 })}
+  <rect width="${FW}" height="${FH}" fill="url(#pvc)"/>
+  ${guilloche({ x: -20, y: 372, w: FW + 40, h: 960, lines: 22, color: "#3db8e8", opacity: 0.12 })}
 
   <circle cx="540" cy="122" r="36" fill="none" stroke="${HAIRLINE}" stroke-width="2" opacity="0.5"/>
 
@@ -314,7 +349,8 @@ const terms = [
 
 const backSvg = Buffer.from(`
 <svg width="${FW}" height="${FH}" xmlns="http://www.w3.org/2000/svg">
-  <rect width="${FW}" height="${FH}" fill="${BODY}"/>
+  <defs>${pvcGradient("pvcBack")}</defs>
+  <rect width="${FW}" height="${FH}" fill="url(#pvcBack)"/>
   ${guilloche({ x: -20, y: 470, w: FW + 40, h: 700, lines: 14, color: NAVY, opacity: 0.05 })}
 
   <circle cx="540" cy="122" r="36" fill="none" stroke="${HAIRLINE}" stroke-width="2" opacity="0.5"/>
@@ -415,29 +451,6 @@ await sharp({
   ])
   .webp({ quality: 90 })
   .toFile(path.join(DEST, "card-atlas.webp"));
-
-// --- cinta del cordón -----------------------------------------------------
-
-const STRAP_W = 128;
-const STRAP_H = 512;
-const strapLabel = outline(fonts.bold, "MDIIS \u00b7 LA RIOJA", 21, 5.5);
-
-const strap = Buffer.from(`
-<svg width="${STRAP_W}" height="${STRAP_H}" xmlns="http://www.w3.org/2000/svg">
-  <rect width="${STRAP_W}" height="${STRAP_H}" fill="${BAND}"/>
-  <rect x="0" y="0" width="7" height="${STRAP_H}" fill="#15181b"/>
-  <rect x="${STRAP_W - 7}" y="0" width="7" height="${STRAP_H}" fill="#15181b"/>
-  <rect x="14" y="0" width="10" height="${STRAP_H}" fill="${GREEN}"/>
-  <rect x="${STRAP_W - 24}" y="0" width="10" height="${STRAP_H}" fill="${RED}"/>
-  <g transform="translate(${STRAP_W / 2 - 7} ${(STRAP_H - strapLabel.width) / 2}) rotate(90)">
-    <path d="${strapLabel.d}" fill="#eef1f4" opacity="0.92"/>
-  </g>
-  <g transform="translate(${STRAP_W / 2 - 7} ${(STRAP_H - strapLabel.width) / 2 + STRAP_H / 2}) rotate(90)">
-    <path d="${strapLabel.d}" fill="#eef1f4" opacity="0.92"/>
-  </g>
-</svg>`);
-
-await sharp(strap).png().toFile(path.join(DEST, "lanyard-strap.png"));
 
 for (const f of ["card-front.webp", "card-back.webp", "card-atlas.webp", "lanyard-strap.png", "card.glb"]) {
   console.log(f, Math.round(fs.statSync(path.join(DEST, f)).size / 1024) + "kb");

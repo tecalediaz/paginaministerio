@@ -31,25 +31,24 @@ export function InfanciasHero() {
 
       <div className="section-shell relative z-10 grid min-h-[100svh] items-end gap-8 pb-10 pt-28 sm:items-center sm:pb-16 sm:pt-32 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
         <div className="max-w-xl animate-hero-rise">
-          <p className="font-banner text-sm uppercase tracking-wide text-fp-amarillo sm:text-base">
-            {infancias.hero.eyebrow}
-          </p>
-          <Image
-            src="/festipeques/logo.webp"
-            alt="Festi Peques. Infancias cuidadas. La Rioja, Argentina."
-            width={420}
-            height={366}
-            priority
-            className="mt-3 h-auto w-[min(100%,18rem)] drop-shadow-lg sm:w-[min(100%,22rem)]"
-          />
+          <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+            <p className="font-banner text-sm uppercase tracking-wide text-fp-amarillo sm:text-base">
+              {infancias.hero.eyebrow}
+            </p>
+            <Image
+              src="/festipeques/logo.webp"
+              alt="Festi Peques. Infancias cuidadas. La Rioja, Argentina."
+              width={420}
+              height={366}
+              priority
+              className="mt-3 h-auto w-[min(100%,18rem)] drop-shadow-lg sm:w-[min(100%,22rem)]"
+            />
+          </div>
           <h1 className="mt-5 font-display text-[clamp(1.7rem,4.2vw,2.75rem)] font-black leading-[1.08] tracking-tight">
             {infancias.hero.title}
           </h1>
           <p className="mt-3 max-w-md text-sm leading-relaxed text-white/85 sm:text-base">
             {infancias.hero.subtitle}
-          </p>
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-white/75 sm:text-[0.95rem]">
-            {infancias.intro}
           </p>
         </div>
 

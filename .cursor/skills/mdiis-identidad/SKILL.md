@@ -14,7 +14,7 @@ Si el trabajo es **Mes de las Infancias**, leer [campana.md](campana.md).
 El diseñador suele pegar el zip acá (no van a git). **Abrirlos y mirarlos** antes de diseñar:
 
 - `MAQUETEADO WEB MDIIS.pdf` — lengua visual institucional (no clonar la home del PDF en v1).
-- `mes_de_las-infancias*.pdf` — contenido F.E.S. (ya volcado en `content/infancias.ts`).
+- `mesinfancias.pdf` — catálogo consolidado del Mes de las Infancias (fuente de `content/infancias.ts`). F.E.S. es un capítulo, no toda la página.
 - `RECURSOS FESTIPEQUES 2026/` — pack crudo de campaña. En web usar `public/festipeques/`, no commitear el pack.
 
 Si un PDF no está con ese nombre, buscar `*.pdf` en la raíz.

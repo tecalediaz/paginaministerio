@@ -55,3 +55,10 @@ next-env.d.ts
 # Referencia local: zip y PDFs pegados en la raíz (no van al repo)
 /Archivo.zip
 /*.pdf
+/*.JPG
+/*.jpg
+/LA_RIOJA_Gobierno.png
+/recursos/
+
+# editor local
+.vscode/

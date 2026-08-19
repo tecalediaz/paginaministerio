@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Reveal } from "@/components/Reveal";
+import { InfanciasCarousel } from "@/components/infancias/InfanciasCarousel";
 import { InfanciasHero } from "@/components/infancias/InfanciasHero";
 import {
   IconBook,
@@ -46,16 +47,16 @@ export function FestipequesLanding() {
         <div className="section-shell relative">
           <Reveal>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-fp-violeta">
-              El Programa F.E.S. en números
+              {infancias.stats.kicker}
             </p>
             <h2 className="mt-2 font-display text-3xl font-bold tracking-tight text-fp-navy sm:text-4xl">
-              Relevamiento — junio 2026
+              {infancias.stats.title}
             </h2>
-            <dl className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {infancias.stats.map((stat) => (
+            <dl className="mt-10 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
+              {infancias.stats.items.map((stat) => (
                 <div
                   key={stat.label}
-                  className="rounded-sm bg-[#f3f4f6] px-5 py-6"
+                  className="rounded-sm bg-[#f3f4f6] px-3 py-4 sm:px-5 sm:py-6"
                 >
                   <dt className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-fg-muted">
                     {stat.label}
@@ -74,42 +75,34 @@ export function FestipequesLanding() {
         <div className="section-shell grid items-start gap-10 lg:grid-cols-[1fr_16rem]">
           <Reveal>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-fp-celeste">
-              {infancias.program.name}
+              {infancias.offer.kicker}
             </p>
             <h2 className="mt-2 font-display text-3xl font-bold tracking-tight text-fp-navy sm:text-4xl">
-              ¿Qué es el Programa F.E.S.?
+              {infancias.offer.title}
             </h2>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-fg">
-              {infancias.program.what}
+              {infancias.offer.lead}
             </p>
 
             <div className="mt-10 grid gap-10 sm:grid-cols-2">
-              <div>
-                <div className="flex items-center gap-3">
-                  <ProgramIcon>
-                    <IconBulb />
-                  </ProgramIcon>
-                  <h3 className="font-display text-xl font-bold text-fp-navy">
-                    Misión
-                  </h3>
-                </div>
-                <p className="mt-3 text-sm leading-relaxed text-fg-muted">
-                  {infancias.program.mission}
-                </p>
-              </div>
-              <div>
-                <div className="flex items-center gap-3">
-                  <ProgramIcon>
-                    <IconBook />
-                  </ProgramIcon>
-                  <h3 className="font-display text-xl font-bold text-fp-navy">
-                    Visión
-                  </h3>
-                </div>
-                <p className="mt-3 text-sm leading-relaxed text-fg-muted">
-                  {infancias.program.vision}
-                </p>
-              </div>
+              {infancias.offer.pillars.map((pillar, index) => {
+                const Icon = index === 0 ? IconBulb : IconBook;
+                return (
+                  <div key={pillar.title}>
+                    <div className="flex items-center gap-3">
+                      <ProgramIcon>
+                        <Icon />
+                      </ProgramIcon>
+                      <h3 className="font-display text-xl font-bold text-fp-navy">
+                        {pillar.title}
+                      </h3>
+                    </div>
+                    <p className="mt-3 text-sm leading-relaxed text-fg-muted">
+                      {pillar.body}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </Reveal>
           <Image
@@ -155,13 +148,13 @@ export function FestipequesLanding() {
         <div className="section-shell relative">
           <Reveal>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-fp-violeta">
-              En el marco de las infancias
+              {infancias.resources.kicker}
             </p>
             <h2 className="mt-2 font-display text-3xl font-bold tracking-tight text-fp-navy sm:text-4xl">
-              Actividades destacadas
+              {infancias.resources.title}
             </h2>
             <ul className="mt-10 grid gap-8 sm:grid-cols-2">
-              {infancias.activities.map((item) => (
+              {infancias.resources.items.map((item) => (
                 <li key={item.id} className="border-t border-line pt-5">
                   <h3 className="font-display text-xl font-semibold text-fp-navy">
                     {item.title}
@@ -184,7 +177,7 @@ export function FestipequesLanding() {
                 <IconPin />
               </ProgramIcon>
               <h2 className="font-display text-3xl font-bold tracking-tight text-fp-navy sm:text-4xl">
-                Un compromiso en cada territorio
+                {infancias.territory.title}
               </h2>
             </div>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-fg">
@@ -192,45 +185,36 @@ export function FestipequesLanding() {
             </p>
 
             <div className="mt-10 grid gap-6 sm:grid-cols-2">
-              {[infancias.territory.capital, infancias.territory.interior].map(
-                (region) => (
-                  <article
-                    key={region.label}
-                    className="relative overflow-hidden rounded-sm border border-line bg-[#f8f8f8] p-6"
-                  >
-                    <Image
-                      src="/festipeques/pin.webp"
-                      alt=""
-                      width={56}
-                      height={90}
-                      className="absolute right-4 top-4 h-14 w-auto"
-                    />
-                    <h3 className="font-display text-2xl font-black text-fp-navy">
-                      {region.label}
-                    </h3>
-                    <dl className="mt-4 space-y-2 text-sm">
-                      <div className="flex justify-between gap-4 pr-16">
-                        <dt className="text-fg-muted">Centros activos</dt>
+              {infancias.territory.cards.map((card) => (
+                <article
+                  key={card.label}
+                  className="relative overflow-hidden rounded-sm border border-line bg-[#f8f8f8] p-6"
+                >
+                  <Image
+                    src="/festipeques/pin.webp"
+                    alt=""
+                    width={56}
+                    height={90}
+                    className="absolute right-4 top-4 h-14 w-auto"
+                  />
+                  <h3 className="font-display text-2xl font-black text-fp-navy">
+                    {card.label}
+                  </h3>
+                  <dl className="mt-4 space-y-2 text-sm">
+                    {card.metrics.map((metric) => (
+                      <div
+                        key={metric.label}
+                        className="flex justify-between gap-4 pr-16"
+                      >
+                        <dt className="text-fg-muted">{metric.label}</dt>
                         <dd className="font-display font-bold text-fp-navy">
-                          {region.centers}
+                          {metric.value}
                         </dd>
                       </div>
-                      <div className="flex justify-between gap-4 pr-16">
-                        <dt className="text-fg-muted">Estudiantes</dt>
-                        <dd className="font-display font-bold text-fp-navy">
-                          {region.students}
-                        </dd>
-                      </div>
-                      <div className="flex justify-between gap-4 pr-16">
-                        <dt className="text-fg-muted">Cobertura</dt>
-                        <dd className="font-display font-bold text-fp-navy">
-                          {region.coverage}
-                        </dd>
-                      </div>
-                    </dl>
-                  </article>
-                ),
-              )}
+                    ))}
+                  </dl>
+                </article>
+              ))}
             </div>
 
             <ul className="mt-10 max-w-3xl space-y-3 text-sm leading-relaxed text-fg">
@@ -247,6 +231,8 @@ export function FestipequesLanding() {
           </Reveal>
         </div>
       </section>
+
+      <InfanciasCarousel slides={infancias.gallery.items} />
 
       <section className="relative overflow-hidden bg-[#fff6d6] py-14 sm:py-16">
         <Image

@@ -18,12 +18,11 @@ export const site = {
     },
     inaugurationKicker: "Única sección activa",
     inauguration: "Mes de las Infancias / Festi Peques",
-    ctaCaption: "Única sección publicada",
     cta: "Entrar al Mes de las Infancias",
     slides: [
       {
-        src: "/slides/DSC_0621.jpg",
-        alt: "Actividad del Ministerio de Desarrollo Social en La Rioja",
+        src: "/slides/DSC_6662.jpg",
+        alt: "Niño en una jornada del Ministerio de Desarrollo Social en La Rioja",
       },
       {
         src: "/slides/DSC_0676.JPG",

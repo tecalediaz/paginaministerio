@@ -40,35 +40,40 @@ class LanyardErrorBoundary extends Component<
   }
 }
 
-function useSkipCanvas() {
-  const [skip, setSkip] = useState(true);
+function useCanvasMode() {
+  const [mode, setMode] = useState<{ skip: boolean; fullBleed: boolean }>({
+    skip: true,
+    fullBleed: false,
+  });
 
   useEffect(() => {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const compact = window.matchMedia("(max-height: 600px)");
-    const update = () => setSkip(motion.matches || compact.matches);
+    const wide = window.matchMedia("(min-width: 1024px)");
+    const update = () =>
+      setMode({ skip: motion.matches || compact.matches, fullBleed: wide.matches });
     update();
-    motion.addEventListener("change", update);
-    compact.addEventListener("change", update);
-    return () => {
-      motion.removeEventListener("change", update);
-      compact.removeEventListener("change", update);
-    };
+    const queries = [motion, compact, wide];
+    queries.forEach((q) => q.addEventListener("change", update));
+    return () => queries.forEach((q) => q.removeEventListener("change", update));
   }, []);
 
-  return skip;
+  return mode;
 }
 
 export function FestiLanyardSlot() {
-  const skip = useSkipCanvas();
+  const { skip, fullBleed } = useCanvasMode();
 
   if (skip) return <StaticPass />;
 
   return (
     <LanyardErrorBoundary fallback={<StaticPass />}>
-      <div className="home-launch__lanyard">
+      <div
+        className="home-launch__lanyard"
+        data-full-bleed={fullBleed ? "" : undefined}
+      >
         <Suspense fallback={<StaticPass />}>
-          <FestiLanyard />
+          <FestiLanyard key={fullBleed ? "full" : "inline"} fullBleed={fullBleed} />
         </Suspense>
       </div>
     </LanyardErrorBoundary>

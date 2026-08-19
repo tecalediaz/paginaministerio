@@ -26,7 +26,6 @@ export function HomeScreen() {
           <p className="home-launch__kicker">{site.home.kicker}</p>
           <p className="home-launch__lead">{site.home.card.eyebrow}</p>
           <h1 className="home-launch__title">{site.fullName}</h1>
-          <p className="home-launch__province">{site.province}</p>
         </div>
 
         <div className="home-launch__art">

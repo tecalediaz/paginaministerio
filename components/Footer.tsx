@@ -1,37 +1,33 @@
-import { SocialLinks, WhatsAppIcon } from "@/components/SocialLinks";
+import Image from "next/image";
+import { SocialLinks } from "@/components/SocialLinks";
 import { site } from "@/content/site";
 
 export function Footer() {
   return (
     <footer className="mt-auto bg-[#ececec] text-brand-ink">
-      <div className="section-shell flex flex-col items-center gap-8 py-10 sm:flex-row sm:items-center sm:justify-between">
-        <a
-          href={site.contact.whatsappHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2.5 text-lg font-medium italic text-brand-gray transition-colors hover:text-brand-red"
-        >
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand-ink text-white [&_svg]:fill-white">
-            <WhatsAppIcon className="h-4 w-4" />
+      <div className="section-shell grid grid-cols-1 justify-items-center gap-8 py-10 sm:grid-cols-3 sm:justify-items-stretch">
+        <p className="max-w-[18rem] text-center leading-snug sm:justify-self-start sm:text-left">
+          <span className="block text-sm font-semibold tracking-wide text-brand-ink">
+            {site.shortName}
           </span>
-          Contactanos
-        </a>
+          <span className="mt-1 block text-sm font-medium text-brand-gray">
+            {site.tagline}
+          </span>
+        </p>
 
-        <div className="flex flex-col items-center gap-1 text-center">
-          <p className="text-[0.7rem] font-medium lowercase tracking-wide text-brand-gray">
-            provincia que late
-          </p>
-          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-brand-gray">
-            Gobierno de
-          </p>
-          <p className="font-display text-2xl font-bold uppercase tracking-tight text-brand-red sm:text-3xl">
-            La Rioja
-          </p>
-        </div>
+        <Image
+          src="/LA_RIOJA_Gobierno.png"
+          alt="Gobierno de La Rioja"
+          width={749}
+          height={609}
+          className="mx-auto h-16 w-auto object-contain sm:h-20"
+        />
 
-        <div className="flex flex-col items-center gap-3 sm:items-end">
-          <p className="social-seguinos is-always">¡Seguinos!</p>
-          <SocialLinks />
+        <div className="flex flex-col items-center gap-2 sm:justify-self-end">
+          <p className="text-sm font-semibold tracking-wide text-brand-ink">
+            ¡Seguinos!
+          </p>
+          <SocialLinks className="social-uiverse--footer" />
         </div>
       </div>
     </footer>
