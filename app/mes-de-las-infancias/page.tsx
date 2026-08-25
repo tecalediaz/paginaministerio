@@ -9,6 +9,18 @@ export const metadata: Metadata = {
     title: "Infancias Cuidadas — La Rioja",
     description:
       "El Estado presente junto a las infancias. Campaña Infancias Cuidadas y programas del Ministerio de Desarrollo, Igualdad e Integración Social.",
+    images: [
+      {
+        url: "/og.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Infancias Cuidadas — La Rioja",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/og.jpg"],
   },
 };
 
