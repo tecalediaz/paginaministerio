@@ -6,13 +6,8 @@ export function Footer() {
   return (
     <footer className="mt-auto bg-[#ececec] text-brand-ink">
       <div className="section-shell grid grid-cols-1 justify-items-center gap-8 py-10 sm:grid-cols-3 sm:justify-items-stretch">
-        <p className="max-w-[18rem] text-center leading-snug sm:justify-self-start sm:text-left">
-          <span className="block text-sm font-semibold tracking-wide text-brand-ink">
-            {site.shortName}
-          </span>
-          <span className="mt-1 block text-sm font-medium text-brand-gray">
-            {site.tagline}
-          </span>
+        <p className="max-w-[18rem] self-center text-center text-sm font-medium leading-snug text-brand-gray sm:justify-self-start sm:text-left">
+          {site.tagline}
         </p>
 
         <Image

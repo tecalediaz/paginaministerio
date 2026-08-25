@@ -1,23 +1,23 @@
 export const infancias = {
-  title: "Agosto, Mes de las Infancias",
+  title: "Infancias Cuidadas",
   campaign: {
-    name: "Festi Peques",
+    name: "Infancias Cuidadas",
     tagline: "Infancias cuidadas",
     kicker: "La Rioja — Argentina",
     slogan: ["EDUCACIÓN", "JUEGO", "CUIDADO", "+ COMUNIDAD"] as const,
     sloganAccent: "CUIDADO",
   },
   teaser: {
-    headline: "Agosto, Mes de las Infancias",
+    headline: "Infancias Cuidadas",
     description:
-      "Festi Peques y los programas del ministerio para las infancias en toda la provincia: fortalecimiento escolar, primera infancia, alimentación escolar y promoción de derechos.",
-    ctaLabel: "Conocé Festi Peques",
+      "Programas del ministerio para las infancias en toda la provincia: fortalecimiento escolar, primera infancia, alimentación escolar y promoción de derechos.",
+    ctaLabel: "Conocé Infancias Cuidadas",
     ctaHref: "/mes-de-las-infancias",
   },
   hero: {
-    eyebrow: "Mes de las Infancias 2026",
+    eyebrow: "Recursos para las infancias",
     title: "El Estado presente junto a las infancias",
-    subtitle: "Festi Peques — Infancias cuidadas en toda la provincia",
+    subtitle: "Infancias cuidadas en toda la provincia",
   },
   stats: {
     kicker: "El ministerio en números",
@@ -157,5 +157,5 @@ export const infancias = {
   quote:
     "Seguimos construyendo inclusión, fortaleciendo comunidades y creando oportunidades para todos.",
   source:
-    "Contenido consolidado del Mes de las Infancias 2026. Ministerio de Desarrollo, Igualdad e Integración Social, Provincia de La Rioja.",
+    "Contenido consolidado de Infancias Cuidadas. Ministerio de Desarrollo, Igualdad e Integración Social, Provincia de La Rioja.",
 } as const;

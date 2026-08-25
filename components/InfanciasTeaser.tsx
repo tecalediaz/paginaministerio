@@ -5,11 +5,7 @@ import { site } from "@/content/site";
 export function InfanciasTeaser() {
   return (
     <div className="home-cta-wrap">
-      <Link
-        href={infancias.teaser.ctaHref}
-        className="home-cta"
-        aria-label={`${site.home.cta}. ${site.home.inauguration}`}
-      >
+      <Link href={infancias.teaser.ctaHref} className="home-cta">
         {site.home.cta}
       </Link>
     </div>

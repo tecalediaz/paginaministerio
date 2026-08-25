@@ -36,12 +36,12 @@ export function InfanciasHero() {
               {infancias.hero.eyebrow}
             </p>
             <Image
-              src="/festipeques/logo.webp"
-              alt="Festi Peques. Infancias cuidadas. La Rioja, Argentina."
-              width={420}
-              height={366}
+              src="/infancias/logo.webp"
+              alt="Infancias Cuidadas"
+              width={1038}
+              height={1074}
               priority
-              className="mt-3 h-auto w-[min(100%,18rem)] drop-shadow-lg sm:w-[min(100%,22rem)]"
+              className="mt-3 h-auto w-[min(100%,15.5rem)] drop-shadow-lg sm:w-[min(100%,18rem)]"
             />
           </div>
           <h1 className="mt-5 font-display text-[clamp(1.7rem,4.2vw,2.75rem)] font-black leading-[1.08] tracking-tight">
@@ -55,7 +55,7 @@ export function InfanciasHero() {
         <div className="relative mx-auto w-full max-w-lg animate-hero-rise-delay lg:max-w-none">
           <Image
             src="/festipeques/grupal.webp"
-            alt="Mascotas de Festi Peques: Cosmo, Nerdy, Neurito y Arcanis."
+            alt="Cosmo, Nerdy, Neurito y Arcanis."
             width={1400}
             height={1045}
             priority

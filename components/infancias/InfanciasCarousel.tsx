@@ -13,26 +13,95 @@ type InfanciasCarouselProps = {
 };
 
 const INTERVAL_MS = 5200;
+const EDGE_PX = 2;
+
+function edgeSlack(maxScroll: number) {
+  return Math.max(12, maxScroll * 0.02);
+}
+
+function wrapIndex(next: number, total: number) {
+  return ((next % total) + total) % total;
+}
+
+function scrollLeftFor(root: HTMLDivElement, slide: HTMLElement) {
+  const raw = slide.offsetLeft - (root.clientWidth - slide.clientWidth) / 2;
+  return Math.max(0, Math.min(raw, root.scrollWidth - root.clientWidth));
+}
+
+function indexFromScroll(root: HTMLDivElement, slides: number) {
+  const maxScroll = root.scrollWidth - root.clientWidth;
+  const sl = root.scrollLeft;
+  const edge = edgeSlack(maxScroll);
+  if (maxScroll <= edge || sl <= edge) return 0;
+  if (sl >= maxScroll - edge) return slides - 1;
+
+  const center = sl + root.clientWidth / 2;
+  let best = 0;
+  let bestDist = Infinity;
+  const nodes = root.querySelectorAll<HTMLElement>(".fp-film-slide");
+  nodes.forEach((node, i) => {
+    const mid = node.offsetLeft + node.clientWidth / 2;
+    const dist = Math.abs(mid - center);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = i;
+    }
+  });
+  return best;
+}
 
 export function InfanciasCarousel({ slides }: InfanciasCarouselProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<(HTMLElement | null)[]>([]);
+  const programmatic = useRef(false);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
 
-  const goTo = useCallback((next: number) => {
-    const total = slides.length;
-    const target = ((next % total) + total) % total;
-    const root = scrollerRef.current;
-    const slide = slideRefs.current[target];
-    if (!root || !slide) return;
-    const left = slide.offsetLeft - (root.clientWidth - slide.clientWidth) / 2;
-    root.scrollTo({
-      left: Math.max(0, left),
-      behavior: reduceMotion ? "auto" : "smooth",
-    });
-  }, [reduceMotion, slides.length]);
+  const goTo = useCallback(
+    (next: number) => {
+      const total = slides.length;
+      const root = scrollerRef.current;
+      if (!root || total < 1) return;
+
+      let target = wrapIndex(next, total);
+      let slide = slideRefs.current[target];
+      if (!slide) return;
+
+      const from = root.scrollLeft;
+      let left = scrollLeftFor(root, slide);
+      const dir = next >= index ? 1 : -1;
+
+      if (Math.abs(left - from) < EDGE_PX && target !== 0 && target !== total - 1) {
+        for (let step = 1; step < total; step++) {
+          const candidate = wrapIndex(target + dir * step, total);
+          const node = slideRefs.current[candidate];
+          if (!node) continue;
+          const candLeft = scrollLeftFor(root, node);
+          if (
+            Math.abs(candLeft - from) >= EDGE_PX ||
+            candidate === 0 ||
+            candidate === total - 1
+          ) {
+            target = candidate;
+            slide = node;
+            left = candLeft;
+            break;
+          }
+        }
+      }
+
+      setIndex(target);
+      if (Math.abs(left - from) < EDGE_PX) return;
+
+      programmatic.current = true;
+      root.scrollTo({
+        left,
+        behavior: reduceMotion ? "auto" : "smooth",
+      });
+    },
+    [index, reduceMotion, slides.length],
+  );
 
   useEffect(() => {
     setReduceMotion(
@@ -42,35 +111,28 @@ export function InfanciasCarousel({ slides }: InfanciasCarouselProps) {
 
   useEffect(() => {
     const root = scrollerRef.current;
-    const slide = slideRefs.current[0];
-    if (!root || !slide) return;
-    const left = slide.offsetLeft - (root.clientWidth - slide.clientWidth) / 2;
-    root.scrollTo({ left: Math.max(0, left), behavior: "auto" });
-  }, []);
-
-  useEffect(() => {
-    const root = scrollerRef.current;
     if (!root) return;
 
     const update = () => {
-      const center = root.scrollLeft + root.clientWidth / 2;
-      let best = 0;
-      let bestDist = Infinity;
-      slideRefs.current.forEach((node, i) => {
-        if (!node) return;
-        const mid = node.offsetLeft + node.clientWidth / 2;
-        const dist = Math.abs(mid - center);
-        if (dist < bestDist) {
-          bestDist = dist;
-          best = i;
-        }
-      });
-      setIndex(best);
+      if (programmatic.current) return;
+      setIndex(indexFromScroll(root, slides.length));
+    };
+
+    const unlock = () => {
+      programmatic.current = false;
+      setIndex(indexFromScroll(root, slides.length));
     };
 
     root.addEventListener("scroll", update, { passive: true });
+    root.addEventListener("scrollend", unlock);
+    const ro = new ResizeObserver(update);
+    ro.observe(root);
     update();
-    return () => root.removeEventListener("scroll", update);
+    return () => {
+      root.removeEventListener("scroll", update);
+      root.removeEventListener("scrollend", unlock);
+      ro.disconnect();
+    };
   }, [slides.length]);
 
   useEffect(() => {

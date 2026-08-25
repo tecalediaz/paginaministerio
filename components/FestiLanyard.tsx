@@ -26,8 +26,8 @@ declare module "@react-three/fiber" {
 }
 
 const CARD_GLB = "/festipeques/card.glb";
-const CARD_ATLAS = "/festipeques/card-atlas.webp";
-const STRAP_TEX = "/festipeques/lanyard-strap.png";
+const CARD_ATLAS = "/festipeques/card-atlas.webp?v=ic-dorso-liso";
+const STRAP_TEX = "/festipeques/lanyard-strap.png?v=ic-ilustrativa";
 /** Punto de la credencial donde engancha la cuerda (anclaje del joint esférico). */
 const RING_ANCHOR = 1.5;
 /** Cuánto se mete la cinta dentro del enganche para que no se vea el corte. */

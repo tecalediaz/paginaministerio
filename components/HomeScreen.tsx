@@ -23,6 +23,13 @@ export function HomeScreen() {
 
       <div className="home-launch__inner">
         <div className="home-launch__copy">
+          <Image
+            src="/LA_RIOJA_Gobierno.png"
+            alt="Gobierno de La Rioja"
+            width={749}
+            height={609}
+            className="home-launch__seal"
+          />
           <p className="home-launch__kicker">{site.home.kicker}</p>
           <p className="home-launch__lead">{site.home.card.eyebrow}</p>
           <h1 className="home-launch__title">{site.fullName}</h1>

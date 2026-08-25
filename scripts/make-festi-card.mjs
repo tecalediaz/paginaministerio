@@ -12,7 +12,6 @@
 import fs from "fs";
 import path from "path";
 import opentype from "opentype.js";
-import QRCode from "qrcode";
 import sharp from "sharp";
 
 const DEST = "public/festipeques";
@@ -138,7 +137,7 @@ function barcode({ x, y, w, h, seed = 7, color = "#1a1d21" }) {
 
 /** Microtexto: ilegible al tamaño real, exactamente como en un documento. */
 function microtext({ x, y, w, size = 9.5, fill = "#b2b8c0" }) {
-  const unit = "MINISTERIODEDESARROLLOIGUALDADEINTEGRACIONSOCIAL\u00b7";
+  const unit = "INFANCIASCUIDADAS\u00b7";
   const unitW = measure("medium", unit, size, 0.35);
   const repeats = Math.ceil(w / unitW) + 1;
   const str = unit.repeat(repeats);
@@ -158,7 +157,7 @@ function labelledField(label, value, { x, y, valueSize = 30, valueWeight = "semi
 // queda aplastada, espejada y con costuras al repetir.
 async function writeLanyardStrap() {
   const STRAP_H = 128;
-  const strapUnit = outline(fonts.bold, "MDIIS \u00b7 LA RIOJA \u00b7 ", 36, 6.5);
+  const strapUnit = outline(fonts.bold, "INFANCIAS CUIDADAS \u00b7 ", 34, 6);
   const pad = 16;
   const STRAP_W = Math.max(256, Math.round(strapUnit.width + pad));
   const strapBaseline = Math.round(STRAP_H * 0.64);
@@ -195,202 +194,88 @@ const tricolor = (y, h, w = FW) =>
 
 // --- recursos rasterizados ------------------------------------------------
 
+const PINK = "#e8287d";
+const CELESTE = "#3db8e8";
+
 const png = (input, opts) => sharp(input).resize(opts).png().toBuffer();
 const meta = (buf) => sharp(buf).metadata();
 
-const [shieldLight, shieldDark, festiLogo, ministerioMark] = await Promise.all([
-  png("public/logo-gob-rioja.svg", { height: 104 }),
-  png("public/logo-gob-rioja.svg", { height: 96 }),
-  png(path.join(DEST, "logo.webp"), { width: 372 }),
-  png("public/ministerio.svg", { width: 560 }),
+const [campaignLogo, cosmo] = await Promise.all([
+  png("public/infancias/logo.webp", { width: 280 }),
+  sharp("public/festipeques/cosmo.webp")
+    .resize(500, 700, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .png()
+    .toBuffer(),
 ]);
 
-const PHOTO = { x: 54, y: 520, w: 372, h: 458, r: 18 };
+const logoMeta = await meta(campaignLogo);
+const cosmoMeta = await meta(cosmo);
 
-const photoMask = Buffer.from(
-  `<svg width="${PHOTO.w}" height="${PHOTO.h}" xmlns="http://www.w3.org/2000/svg"><rect width="${PHOTO.w}" height="${PHOTO.h}" rx="${PHOTO.r}" fill="#fff"/></svg>`,
-);
+const BAND_Y = 176;
+const BAND_H = 96;
 
-const cosmoPortrait = await sharp(path.join(DEST, "cosmo.webp"))
-  .resize(PHOTO.w - 24, PHOTO.h - 40, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
-  .extend({
-    top: 20,
-    bottom: 20,
-    left: 12,
-    right: 12,
-    background: { r: 0, g: 0, b: 0, alpha: 0 },
-  })
-  .composite([{ input: photoMask, blend: "dest-in" }])
-  .png()
-  .toBuffer();
-
-const GHOST = 132;
-const cosmoGhost = await sharp(path.join(DEST, "cosmo.webp"))
-  .resize(GHOST, GHOST, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
-  .grayscale()
-  .composite([
-    {
-      input: Buffer.from(
-        `<svg width="${GHOST}" height="${GHOST}" xmlns="http://www.w3.org/2000/svg"><rect width="${GHOST}" height="${GHOST}" fill="#fff" fill-opacity="0.3"/></svg>`,
-      ),
-      blend: "dest-in",
-    },
-  ])
-  .png()
-  .toBuffer();
-
-const SEAL = 108;
-const seal = Buffer.from(`
-<svg width="${SEAL}" height="${SEAL}" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="ovd" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
-      <stop offset="0.3" stop-color="#cfe3ef" stop-opacity="0.9"/>
-      <stop offset="0.55" stop-color="#f2e6c9" stop-opacity="0.9"/>
-      <stop offset="0.8" stop-color="#d9e9d6" stop-opacity="0.9"/>
-      <stop offset="1" stop-color="#ffffff" stop-opacity="0.95"/>
-    </linearGradient>
-  </defs>
-  <circle cx="${SEAL / 2}" cy="${SEAL / 2}" r="${SEAL / 2 - 2}" fill="url(#ovd)" stroke="#ffffff" stroke-width="2"/>
-  <circle cx="${SEAL / 2}" cy="${SEAL / 2}" r="${SEAL / 2 - 12}" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.85"/>
-  ${Array.from({ length: 9 }, (_, i) => {
-    const a = (i / 9) * Math.PI * 2;
-    const r1 = SEAL / 2 - 14;
-    const r2 = SEAL / 2 - 30;
-    return `<line x1="${(SEAL / 2 + Math.cos(a) * r1).toFixed(1)}" y1="${(SEAL / 2 + Math.sin(a) * r1).toFixed(1)}" x2="${(SEAL / 2 + Math.cos(a) * r2).toFixed(1)}" y2="${(SEAL / 2 + Math.sin(a) * r2).toFixed(1)}" stroke="#ffffff" stroke-width="1.6" opacity="0.8"/>`;
-  }).join("")}
-  ${text("black", "MDIIS", { size: 19, x: SEAL / 2, y: SEAL / 2 + 7, anchor: "middle", fill: "#5c6b78", opacity: 0.85 })}
-</svg>`);
+function pill(label, { x, y, w, fill }) {
+  return [
+    `<rect x="${x}" y="${y}" width="${w}" height="48" rx="24" fill="${fill}"/>`,
+    text("bold", label, { size: 15, x: x + w / 2, y: y + 32, ls: 1.4, fill: "#ffffff", anchor: "middle" }),
+  ].join("");
+}
 
 // --- frente ---------------------------------------------------------------
-
-const shieldLightMeta = await meta(shieldLight);
-const festiMeta = await meta(festiLogo);
-const ministerioMeta = await meta(ministerioMark);
-
-const headerTextX = 54 + shieldLightMeta.width + 30;
-const FIELDS_X = 458;
 
 const frontSvg = Buffer.from(`
 <svg width="${FW}" height="${FH}" xmlns="http://www.w3.org/2000/svg">
   <defs>
     ${pvcGradient()}
-    <linearGradient id="photoBg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#eaf6fc"/>
-      <stop offset="1" stop-color="#cfe6f3"/>
-    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="58%" r="42%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="${BODY}" stop-opacity="0"/>
+    </radialGradient>
   </defs>
   <rect width="${FW}" height="${FH}" fill="url(#pvc)"/>
-  ${guilloche({ x: -20, y: 372, w: FW + 40, h: 960, lines: 22, color: "#3db8e8", opacity: 0.12 })}
+  ${guilloche({ x: -20, y: 300, w: FW + 40, h: 1100, lines: 20, color: PINK, opacity: 0.07 })}
+  <circle cx="540" cy="900" r="340" fill="url(#glow)"/>
 
   <circle cx="540" cy="122" r="36" fill="none" stroke="${HAIRLINE}" stroke-width="2" opacity="0.5"/>
 
-  <rect x="0" y="176" width="${FW}" height="172" fill="${BAND}"/>
-  ${tricolor(348, 9)}
-  ${text("bold", "GOBIERNO DE LA RIOJA", { size: 27, x: headerTextX, y: 242, ls: 5.2, fill: "#ffffff" })}
-  ${text("medium", "Ministerio de Desarrollo, Igualdad", { size: 19.5, x: headerTextX, y: 276, ls: 0.6, fill: "#aeb6bf" })}
-  ${text("medium", "e Integraci\u00f3n Social", { size: 19.5, x: headerTextX, y: 302, ls: 0.6, fill: "#aeb6bf" })}
+  <rect x="0" y="${BAND_Y}" width="${FW}" height="${BAND_H}" fill="${BAND}"/>
+  ${tricolor(BAND_Y + BAND_H, 8)}
+  ${text("bold", "EDUCACI\u00d3N  \u00b7  JUEGO  \u00b7  CUIDADO", { size: 18, x: FW / 2, y: BAND_Y + 42, ls: 2.2, fill: "#ffffff", anchor: "middle" })}
+  ${text("medium", "+ comunidad", { size: 16, x: FW / 2, y: BAND_Y + 70, ls: 1.4, fill: "#c5cbd2", anchor: "middle" })}
 
-  ${text("bold", "PASE DE ACCESO", { size: 21, x: 54, y: 400, ls: 7.5, fill: RED })}
-  ${text("medium", "N\u00b0 2026-08-0147", { size: 19, x: 1026, y: 400, ls: 1.4, fill: LABEL, anchor: "end" })}
+  ${text("bold", "RECURSOS PARA LAS INFANCIAS", { size: 16, x: FW / 2, y: 318, ls: 4.2, fill: RED, anchor: "middle" })}
 
-  ${text("black", "Mes de las Infancias", { size: 55, x: 52, y: 458, fill: NAVY })}
-  ${text("medium", "Programa Festi Peques \u00b7 Infancias cuidadas", { size: 21, x: 54, y: 494, fill: MUTED })}
-
-  <rect x="${PHOTO.x}" y="${PHOTO.y}" width="${PHOTO.w}" height="${PHOTO.h}" rx="${PHOTO.r}" fill="url(#photoBg)"/>
-  <rect x="${PHOTO.x + 0.75}" y="${PHOTO.y + 0.75}" width="${PHOTO.w - 1.5}" height="${PHOTO.h - 1.5}" rx="${PHOTO.r}" fill="none" stroke="${HAIRLINE}" stroke-width="1.5"/>
-
-  ${labelledField("TITULAR", "Cosmo", { x: FIELDS_X, y: 556, valueSize: 34, valueWeight: "bold" })}
-  ${labelledField("ROL", "Mascota oficial", { x: FIELDS_X, y: 664 })}
-  ${labelledField("EDICI\u00d3N", "Agosto 2026", { x: FIELDS_X, y: 772 })}
-  ${labelledField("ALCANCE", "Toda la provincia", { x: FIELDS_X, y: 880 })}
-
-  ${barcode({ x: 54, y: 1352, w: 972, h: 58 })}
-  ${text("medium", "MDIIS \u00b7 LA RIOJA \u00b7 2026 \u00b7 0147", { size: 21, x: FW / 2, y: 1452, ls: 5.5, fill: "#4a5058", anchor: "middle" })}
-  ${microtext({ x: 54, y: 1496, w: 972 })}
+  ${pill("F.E.S.", { x: 48, y: 1368, w: 228, fill: NAVY })}
+  ${pill("1\u00aa infancia", { x: 292, y: 1368, w: 240, fill: PINK })}
+  ${pill("PAR", { x: 548, y: 1368, w: 228, fill: GREEN })}
+  ${pill("L\u00ednea 102", { x: 792, y: 1368, w: 240, fill: CELESTE })}
 </svg>`);
 
 const frontPng = await sharp(frontSvg)
   .composite([
-    { input: shieldLight, top: 210, left: 54 },
-    { input: cosmoPortrait, top: PHOTO.y, left: PHOTO.x },
-    { input: cosmoGhost, top: 848, left: 1026 - GHOST },
-    { input: seal, top: PHOTO.y + PHOTO.h - SEAL / 2 - 26, left: PHOTO.x + PHOTO.w - SEAL / 2 - 20 },
-    { input: festiLogo, top: 1004, left: Math.round((FW - festiMeta.width) / 2) },
+    {
+      input: campaignLogo,
+      top: 338,
+      left: Math.round((FW - logoMeta.width) / 2),
+    },
+    {
+      input: cosmo,
+      top: 338 + logoMeta.height - 12,
+      left: Math.round((FW - cosmoMeta.width) / 2),
+    },
   ])
   .png()
   .toBuffer();
 
-// --- dorso ----------------------------------------------------------------
-
-const qr = QRCode.create("https://desarrollosocial.larioja.gob.ar", { errorCorrectionLevel: "M" });
-const QR_PX = 288;
-const qrSize = qr.modules.size;
-const cell = QR_PX / (qrSize + 4);
-const qrCells = [];
-for (let r = 0; r < qrSize; r++) {
-  for (let c = 0; c < qrSize; c++) {
-    if (!qr.modules.data[r * qrSize + c]) continue;
-    qrCells.push(
-      `<rect x="${((c + 2) * cell).toFixed(2)}" y="${((r + 2) * cell).toFixed(2)}" width="${cell.toFixed(2)}" height="${cell.toFixed(2)}"/>`,
-    );
-  }
-}
-
-const QR = { x: 54, y: 706 };
-const RIGHT_X = 402;
-
-const terms = [
-  "Esta credencial es personal e intransferible.",
-  "Debe exhibirse durante las actividades del programa.",
-  "En caso de p\u00e9rdida, avisar al equipo organizador.",
-  "V\u00e1lida \u00fanicamente durante agosto de 2026.",
-];
+// --- dorso: PVC liso ------------------------------------------------------
 
 const backSvg = Buffer.from(`
 <svg width="${FW}" height="${FH}" xmlns="http://www.w3.org/2000/svg">
   <defs>${pvcGradient("pvcBack")}</defs>
   <rect width="${FW}" height="${FH}" fill="url(#pvcBack)"/>
-  ${guilloche({ x: -20, y: 470, w: FW + 40, h: 700, lines: 14, color: NAVY, opacity: 0.05 })}
-
-  <circle cx="540" cy="122" r="36" fill="none" stroke="${HAIRLINE}" stroke-width="2" opacity="0.5"/>
-
-  <rect x="0" y="176" width="${FW}" height="116" fill="${BAND}"/>
-  ${tricolor(292, 9)}
-  ${text("bold", "GOBIERNO DE LA RIOJA", { size: 20, x: FW / 2, y: 224, ls: 6, fill: "#ffffff", anchor: "middle" })}
-  ${text("medium", "Ministerio de Desarrollo, Igualdad e Integraci\u00f3n Social", { size: 18, x: FW / 2, y: 258, ls: 0.8, fill: "#aeb6bf", anchor: "middle" })}
-
-  <rect x="0" y="340" width="${FW}" height="112" fill="#17191c"/>
-  <rect x="0" y="346" width="${FW}" height="3" fill="#33383d"/>
-  <rect x="0" y="440" width="${FW}" height="2" fill="#0e1012"/>
-
-  ${text("bold", "CONDICIONES DE USO", { size: 19, x: 54, y: 524, ls: 6, fill: RED })}
-  ${terms.map((t, i) => text("regular", t, { size: 21, x: 54, y: 570 + i * 34, fill: "#5b626b" })).join("")}
-
-  <rect x="${QR.x}" y="${QR.y}" width="${QR_PX}" height="${QR_PX}" fill="#ffffff"/>
-  <g transform="translate(${QR.x} ${QR.y})" fill="#17191c">${qrCells.join("")}</g>
-  <rect x="${QR.x + 0.75}" y="${QR.y + 0.75}" width="${QR_PX - 1.5}" height="${QR_PX - 1.5}" fill="none" stroke="${HAIRLINE}" stroke-width="1.5"/>
-  ${text("medium", "desarrollosocial.larioja.gob.ar", { size: 17, x: QR.x, y: QR.y + QR_PX + 34, fill: "#5b626b" })}
-
-  ${text("bold", "GOBIERNO DE LA RIOJA", { size: 19, x: RIGHT_X, y: 846, ls: 4, fill: INK })}
-  ${text("medium", "Provincia de La Rioja", { size: 19, x: RIGHT_X, y: 878, fill: MUTED })}
-  ${text("regular", "Av. Alem y Av. Los Caudillos", { size: 18, x: RIGHT_X, y: 922, fill: LABEL })}
-  ${text("regular", "+54 0380 445-3156", { size: 18, x: RIGHT_X, y: 950, fill: LABEL })}
-
-  <line x1="54" y1="1124" x2="600" y2="1124" stroke="${HAIRLINE}" stroke-width="1.6"/>
-  ${text("bold", "FIRMA DEL TITULAR", { size: 14, x: 54, y: 1154, ls: 4, fill: LABEL })}
-
-  ${barcode({ x: 54, y: 1402, w: 972, h: 62, seed: 23 })}
-  ${microtext({ x: 54, y: 1502, w: 972 })}
 </svg>`);
 
-const backPng = await sharp(backSvg)
-  .composite([
-    { input: shieldDark, top: 706, left: RIGHT_X },
-    { input: ministerioMark, top: 1206, left: Math.round((FW - ministerioMeta.width) / 2) },
-  ])
-  .png()
-  .toBuffer();
+const backPng = await sharp(backSvg).png().toBuffer();
 
 // --- grano de PVC ---------------------------------------------------------
 

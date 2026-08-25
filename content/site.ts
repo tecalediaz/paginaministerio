@@ -8,7 +8,7 @@ export const site = {
     { label: "Infancias cuidadas", href: "/mes-de-las-infancias" },
   ],
   home: {
-    headline: "Este agosto, las infancias son protagonistas",
+    headline: "Las infancias son protagonistas",
     kicker: "Próximamente",
     card: {
       eyebrow: "Página oficial del",
@@ -17,8 +17,8 @@ export const site = {
         "Estamos preparando el nuevo sitio del Ministerio de Desarrollo, Igualdad e Integración Social de la Provincia de La Rioja.",
     },
     inaugurationKicker: "Única sección activa",
-    inauguration: "Mes de las Infancias / Festi Peques",
-    cta: "Entrar al Mes de las Infancias",
+    inauguration: "Infancias Cuidadas",
+    cta: "Infancias Cuidadas",
     slides: [
       {
         src: "/slides/DSC_6662.jpg",
@@ -43,9 +43,9 @@ export const site = {
     ],
     infanciasTile: {
       href: "/mes-de-las-infancias#agenda",
-      label: "Agosto",
-      title: "Mes de las Infancias",
-      cta: "Mes de las Infancias",
+      label: "Ahora",
+      title: "Infancias Cuidadas",
+      cta: "Infancias Cuidadas",
     },
   },
   slogan: [
