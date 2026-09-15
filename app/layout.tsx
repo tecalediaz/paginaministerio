@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { ConditionalFooter } from "@/components/ConditionalFooter";
+import type { ReactNode } from "react";
+import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { site } from "@/content/site";
-import { antenna, burgerFree, moreSugar } from "@/lib/fonts";
+import { antenna } from "@/lib/fonts";
 import "./globals.css";
 
 const ogImage = {
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
     template: `%s | ${site.shortName} — La Rioja`,
   },
   description:
-    "Sitio oficial del Ministerio de Desarrollo, Igualdad e Integración Social de la Provincia de La Rioja. Agenda social, institucional y contacto.",
+    "Sitio oficial del Ministerio de Desarrollo, Igualdad e Integración Social de la Provincia de La Rioja. Programas, trámites, áreas y contacto.",
   metadataBase: new URL("https://desarrollosocial.larioja.gob.ar"),
   icons: {
     icon: [
@@ -34,8 +35,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: `${site.fullName} | ${site.province}`,
-    description:
-      "Trabajamos por el bienestar y el progreso de La Rioja. Agenda social, institucional y contacto.",
+    description: site.tagline,
     locale: "es_AR",
     type: "website",
     siteName: site.fullName,
@@ -44,22 +44,23 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: `${site.fullName} | ${site.province}`,
-    description:
-      "Trabajamos por el bienestar y el progreso de La Rioja.",
+    description: site.tagline,
     images: [ogImage.url],
   },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html
-      lang="es-AR"
-      className={`${antenna.variable} ${moreSugar.variable} ${burgerFree.variable} h-full antialiased`}
-    >
+    <html lang="es-AR" className={`${antenna.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
+        <a className="skip-link" href="#contenido">
+          Saltar al contenido
+        </a>
         <Header />
-        <main className="flex min-h-0 flex-1 flex-col">{children}</main>
-        <ConditionalFooter />
+        <main id="contenido" className="flex-1">
+          {children}
+        </main>
+        <Footer />
       </body>
     </html>
   );

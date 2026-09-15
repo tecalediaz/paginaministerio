@@ -1,56 +1,84 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { SocialLinks } from "@/components/SocialLinks";
+import { usePathname } from "next/navigation";
+import { useEffect, useId, useState } from "react";
+import { BrandMark } from "@/components/BrandMark";
 import { site } from "@/content/site";
 
-const COMPACT_AFTER = 32;
-
 export function Header() {
-  const [compact, setCompact] = useState(false);
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  const menuId = useId();
 
   useEffect(() => {
-    const update = () => setCompact(window.scrollY > COMPACT_AFTER);
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    return () => window.removeEventListener("scroll", update);
-  }, []);
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
   return (
-    <header
-      data-compact={compact ? "" : undefined}
-      className={`site-nav sticky top-0 z-50 border-b bg-white/95 backdrop-blur-md ${
-        compact
-          ? "border-brand-ink/10 shadow-[0_6px_20px_rgba(30,42,74,0.07)]"
-          : "border-brand-ink/8"
-      }`}
-    >
-      <div
-        className={`section-shell flex items-center justify-between gap-3 sm:gap-6 ${
-          compact ? "py-2 sm:py-2.5" : "py-4 sm:py-5"
-        }`}
-      >
-        <Link href="/" className="group min-w-0 shrink">
-          <Image
-            src="/ministerio.svg"
-            alt={site.fullName}
-            width={420}
-            height={90}
-            className={`w-auto object-contain object-left group-hover:opacity-80 ${
-              compact
-                ? "h-7 max-w-[min(100%,176px)] sm:h-8 sm:max-w-[220px]"
-                : "h-9 max-w-[min(100%,220px)] sm:h-11 sm:max-w-[280px]"
-            }`}
-            priority
-          />
-        </Link>
-
-        <SocialLinks
-          className={`social-uiverse--header${compact ? " is-compact" : ""}`}
-        />
+    <header className="sticky top-0 z-50 border-b border-line bg-white/95 backdrop-blur-md">
+      <div className="h-1 bg-accent" />
+      <p className="border-b border-line bg-bg-soft py-1.5 text-center text-[11px] font-semibold tracking-[0.14em] text-fg-muted uppercase">
+        {site.province}
+      </p>
+      <div className="shell flex items-center justify-between gap-4 py-3 sm:py-4">
+        <BrandMark onNavigate={() => setOpen(false)} />
+        <nav aria-label="Principal" className="hidden items-center gap-1 lg:flex">
+          {site.nav.map((item) => {
+            const current =
+              item.href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={current ? "page" : undefined}
+                className={`rounded-[6px] px-3 py-2.5 text-sm font-semibold transition-colors ${
+                  current
+                    ? "text-accent-warm"
+                    : "text-fg hover:bg-bg-soft"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+        <button
+          type="button"
+          className="inline-flex h-11 min-w-11 items-center justify-center rounded-[6px] border border-line px-3 text-sm font-bold lg:hidden"
+          aria-expanded={open}
+          aria-controls={menuId}
+          onClick={() => setOpen((value) => !value)}
+        >
+          {open ? "Cerrar" : "Menú"}
+        </button>
       </div>
+      {open ? (
+        <nav
+          id={menuId}
+          aria-label="Menú móvil"
+          className="border-t border-line bg-white lg:hidden"
+        >
+          <ul className="shell flex flex-col py-2">
+            {site.nav.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="block min-h-11 py-3 text-base font-semibold"
+                  onClick={() => setOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ) : null}
     </header>
   );
 }

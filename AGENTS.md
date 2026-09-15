@@ -8,6 +8,6 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# Agencia — sitio MDIIS La Rioja
+# Agencia — sitio MDIIS La Rioja (v2)
 
-Antes de cambiar UI, tipografías, la home (`/`) o `/mes-de-las-infancias`, seguir `.cursor/skills/mdiis-identidad/`. La home es una sola pantalla institucional que inaugura el Mes de las Infancias (`home.md`). Festipeques/F.E.S. viven en `/mes-de-las-infancias` (`campana.md`).
+Sitio oficial del Ministerio de Desarrollo, Igualdad e Integración Social. Antes de cambiar UI, tipografías o la home (`/`), seguir `.cursor/skills/mdiis-identidad/`. La home es un directorio de trámites por necesidad (`home.md`). No hay capa Festipeques en esta rama.
