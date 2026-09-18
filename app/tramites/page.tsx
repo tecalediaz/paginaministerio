@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "Programas y trámites del Ministerio de Desarrollo, Igualdad e Integración Social de La Rioja.",
 };
 
-export const revalidate = 120;
+export const dynamic = "force-dynamic";
 
 function parseNeed(value?: string): NeedId | undefined {
   return needs.find((item) => item.id === value)?.id;

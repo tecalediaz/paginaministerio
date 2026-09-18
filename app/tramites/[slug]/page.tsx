@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { ServiceSheet } from "@/components/ServiceSheet";
 import { listPublishedPagos } from "@/lib/pagos";
-import { getPublishedTramite, LEGACY_TRAMITE_SLUGS } from "@/lib/tramites";
+import { getPublishedTramite } from "@/lib/tramites";
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
-export const revalidate = 120;
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -25,8 +25,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function TramitePage({ params }: Props) {
   const { slug } = await params;
-  const canonical = LEGACY_TRAMITE_SLUGS[slug];
-  if (canonical) redirect(`/tramites/${canonical}`);
   const tramite = await getPublishedTramite(slug);
   if (!tramite) notFound();
   const pagos =

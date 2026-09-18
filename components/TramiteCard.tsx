@@ -10,7 +10,7 @@ function CardMedia({ src, alt }: { src: string; alt: string }) {
         src={src}
         alt={alt}
         fill
-        sizes="(min-width: 1024px) 20rem, (min-width: 640px) 45vw, 80vw"
+        sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 45vw, 90vw"
         className="object-cover object-center"
       />
     );
@@ -27,15 +27,26 @@ function CardMedia({ src, alt }: { src: string; alt: string }) {
   );
 }
 
+function InstitutionalCover() {
+  return (
+    <div className="relative flex aspect-[3/4] items-center justify-center bg-bg-deep px-10">
+      <Image
+        src="/logo-gob-rioja.svg"
+        alt=""
+        width={96}
+        height={110}
+        className="h-28 w-auto"
+      />
+    </div>
+  );
+}
+
 export function TramitePosterCard({ tramite }: { tramite: Tramite }) {
   const photo = tramite.image;
-  if (!photo) {
-    return <TramiteCard tramite={tramite} />;
-  }
 
   return (
-    <article className="overflow-hidden rounded-xl bg-white">
-      {photo.replaceWith ? (
+    <article className="h-full overflow-hidden rounded-xl bg-white">
+      {photo?.replaceWith ? (
         <PlaceholderPhoto
           photo={{
             src: photo.src,
@@ -43,13 +54,15 @@ export function TramitePosterCard({ tramite }: { tramite: Tramite }) {
             replaceWith: photo.replaceWith,
           }}
           className="aspect-[3/4]"
-          sizes="(min-width: 1024px) 20rem, (min-width: 640px) 45vw, 80vw"
+          sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 45vw, 90vw"
           compact
         />
-      ) : (
+      ) : photo ? (
         <div className="relative aspect-[3/4] overflow-hidden bg-bg-deep">
           <CardMedia src={photo.src} alt={photo.alt} />
         </div>
+      ) : (
+        <InstitutionalCover />
       )}
       <div className="px-4 py-4 sm:px-5 sm:py-5">
         <h3 className="text-lg font-bold text-pretty text-brand-navy sm:text-xl">

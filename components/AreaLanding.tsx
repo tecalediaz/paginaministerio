@@ -211,9 +211,9 @@ export function AreaLanding({
             Programas y trámites
           </h2>
           {tramites.length > 0 ? (
-            <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {tramites.map((tramite) => (
-                <li key={tramite.slug} className="max-w-sm">
+                <li key={tramite.slug} className="min-w-0">
                   <TramitePosterCard tramite={tramite} />
                 </li>
               ))}

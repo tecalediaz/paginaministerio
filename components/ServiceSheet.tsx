@@ -103,55 +103,65 @@ export function ServiceSheet({
   if (!isPagos && requisitos.length === 1) {
     rows.push({ label: "Requisitos", value: requisitos[0] });
   }
-  if (tramite.notes) rows.push({ label: "Notas", value: tramite.notes });
-  rows.push({
-    label: "Área responsable",
-    value: area.name,
-    href: `/areas/${area.slug}`,
-  });
+  if (tramite.notes) {
+    rows.push({ label: "Notas", value: tramite.notes });
+  }
+  if (isPagos) {
+    rows.push({
+      label: "Responsable",
+      value: site.fullName,
+    });
+  } else {
+    rows.push({
+      label: "Área responsable",
+      value: area.name,
+      href: `/areas/${area.slug}`,
+    });
+  }
+
+  const ficha = (
+    <dl className="divide-y divide-line">
+      {rows.map((row) => (
+        <div key={row.label} className="grid gap-2 py-4">
+          <dt className="text-sm font-bold tracking-wide text-fg-muted uppercase">
+            {row.label}
+          </dt>
+          <dd className="min-w-0 break-words">
+            {row.href ? (
+              <Link className="font-semibold text-accent-warm" href={row.href}>
+                {row.value}
+              </Link>
+            ) : (
+              row.value
+            )}
+          </dd>
+        </div>
+      ))}
+      {!isPagos && requisitos.length > 1 ? (
+        <div className="grid gap-2 py-4">
+          <dt className="text-sm font-bold tracking-wide text-fg-muted uppercase">
+            Requisitos
+          </dt>
+          <dd className="min-w-0 break-words">
+            <ul className="list-disc space-y-1 pl-5">
+              {requisitos.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </dd>
+        </div>
+      ) : null}
+    </dl>
+  );
 
   return (
     <>
-      <div className="grid gap-10 pb-32 lg:grid-cols-[1fr_280px] lg:pb-0">
+      <div className="grid gap-10 pb-32 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)] lg:items-start lg:pb-0">
         <article>
           <p className="kicker">{isPagos ? "Ministerio" : need.label}</p>
           <h1 className="mt-3 text-3xl font-black tracking-tight text-brand-navy sm:text-4xl">
             {tramite.title}
           </h1>
-          {rows.length > 0 ? (
-            <dl className="mt-8 divide-y divide-line border-t border-b border-line">
-              {rows.map((row) => (
-                <div key={row.label} className="grid gap-2 py-5 sm:grid-cols-[200px_1fr]">
-                  <dt className="text-sm font-bold tracking-wide text-fg-muted uppercase">
-                    {row.label}
-                  </dt>
-                  <dd className="min-w-0 break-words">
-                    {row.href ? (
-                      <Link className="font-semibold text-accent-warm" href={row.href}>
-                        {row.value}
-                      </Link>
-                    ) : (
-                      row.value
-                    )}
-                  </dd>
-                </div>
-              ))}
-              {!isPagos && requisitos.length > 1 ? (
-                <div className="grid gap-2 py-5 sm:grid-cols-[200px_1fr]">
-                  <dt className="text-sm font-bold tracking-wide text-fg-muted uppercase">
-                    Requisitos
-                  </dt>
-                  <dd className="min-w-0 break-words">
-                    <ul className="list-disc space-y-1 pl-5">
-                      {requisitos.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </dd>
-                </div>
-              ) : null}
-            </dl>
-          ) : null}
           {isPagos ? <PagosTable items={pagos} /> : null}
           {!isPagos && tramite.formFields.length > 0 ? (
             <div className="mt-10">
@@ -159,26 +169,33 @@ export function ServiceSheet({
             </div>
           ) : null}
         </article>
-        <aside className="h-fit border border-line bg-white p-5">
-          <p className="text-sm font-bold">¿Necesitás orientación ahora?</p>
-          <p className="mt-2 text-sm text-fg-muted">
-            {site.contact.address}. {site.contact.hours}.
-          </p>
-          <a
-            className="mt-4 inline-flex min-h-11 items-center font-bold text-accent-warm"
-            href={site.contact.phoneHref}
-          >
-            Llamar {site.contact.phone}
-          </a>
-          <br />
-          <a
-            className="inline-flex min-h-11 items-center font-bold text-accent-warm"
-            href={site.contact.whatsappHref}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Escribir por WhatsApp
-          </a>
+        <aside className="h-fit space-y-6">
+          {rows.length > 0 || requisitos.length > 1 ? (
+            <div className="border border-line bg-white px-5 py-4">
+              {ficha}
+            </div>
+          ) : null}
+          <div className="border border-line bg-white p-5">
+            <p className="text-sm font-bold">¿Necesitás orientación ahora?</p>
+            <p className="mt-2 text-sm text-fg-muted">
+              {site.contact.address}. {site.contact.hours}.
+            </p>
+            <a
+              className="mt-4 inline-flex min-h-11 items-center font-bold text-accent-warm"
+              href={site.contact.phoneHref}
+            >
+              Llamar {site.contact.phone}
+            </a>
+            <br />
+            <a
+              className="inline-flex min-h-11 items-center font-bold text-accent-warm"
+              href={site.contact.whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Escribir por WhatsApp
+            </a>
+          </div>
         </aside>
       </div>
       <div className="sheet-actions">

@@ -1,6 +1,10 @@
-import { areas } from "@/content/areas";
+import { areas, getArea } from "@/content/areas";
 import type { NeedId } from "@/content/needs";
 import type { TramiteFormField } from "@/lib/tramite-form";
+
+/** Área ministerial cuando el CMS manda un slug que el sitio no tiene (p. ej. `general`). */
+export const FALLBACK_AREA_SLUG = "atencion-sede";
+export const FALLBACK_NEED: NeedId = "territorio";
 
 export type TramiteImage = {
   src: string;
@@ -26,9 +30,9 @@ export type Tramite = {
 };
 
 export function areaOf(tramite: Tramite) {
-  const area = areas.find((item) => item.slug === tramite.areaSlug);
-  if (!area) {
-    throw new Error(`Area missing for tramite ${tramite.slug}`);
-  }
-  return area;
+  return (
+    getArea(tramite.areaSlug) ??
+    getArea(FALLBACK_AREA_SLUG) ??
+    areas[0]
+  );
 }
