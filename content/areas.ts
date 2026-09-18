@@ -1,4 +1,7 @@
 import type { NeedId } from "@/content/needs";
+import type { SocialId } from "@/content/site";
+
+export type AreaSocial = Partial<Record<SocialId, string>>;
 
 export type Area = {
   slug: string;
@@ -8,6 +11,7 @@ export type Area = {
   summary: string;
   audience: string;
   access: string;
+  social?: AreaSocial;
 };
 
 export const areas: Area[] = [
@@ -121,6 +125,15 @@ export const areas: Area[] = [
       "Gestiona proyectos especiales del ministerio. Los programas abiertos se informan en sede.",
     audience: "Personas y organizaciones vinculadas a proyectos productivos o sociales en curso.",
     access: "Consultar en sede qué convocatorias están vigentes.",
+  },
+  {
+    slug: "fes",
+    name: "FES — Fortalecimiento escolar y social",
+    kind: "Coordinación",
+    need: "infancias",
+    summary: "Fortalecimiento escolar y social.",
+    audience: "Consultar en sede.",
+    access: "Consultar en sede.",
   },
   {
     slug: "atencion-sede",

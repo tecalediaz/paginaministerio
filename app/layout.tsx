@@ -15,6 +15,7 @@ const ogImage = {
 
 export const viewport: Viewport = {
   themeColor: "#4caf50",
+  viewportFit: "cover",
 };
 
 export const metadata: Metadata = {

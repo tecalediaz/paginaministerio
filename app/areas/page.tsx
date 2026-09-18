@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import { AreaCard } from "@/components/AreaCard";
+import { AreaIndex } from "@/components/AreaIndex";
 import { Breadcrumb } from "@/components/Breadcrumb";
-import { areas } from "@/content/areas";
 
 export const metadata: Metadata = {
   title: "Áreas",
@@ -9,25 +8,31 @@ export const metadata: Metadata = {
     "Directorio de áreas del Ministerio de Desarrollo, Igualdad e Integración Social de La Rioja.",
 };
 
-export default function AreasPage() {
+export default async function AreasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const params = await searchParams;
+  const q = params.q?.trim() ?? "";
+
   return (
-    <div className="shell py-8 sm:py-12">
+    <div className="shell pt-4 pb-8 sm:pt-6 sm:pb-12">
       <Breadcrumb
         items={[
           { href: "/", label: "Inicio" },
           { label: "Áreas" },
         ]}
       />
-      <p className="kicker mt-6">Ministerio</p>
-      <h1 className="mt-2 text-4xl font-black text-brand-navy">Áreas</h1>
-      <p className="mt-3 max-w-2xl text-fg-muted">
-        Listado de secretarías, subsecretarías, direcciones y consejos. No
-        publicamos titulares de cada área.
-      </p>
-      <div className="mt-8 grid gap-4 md:grid-cols-2">
-        {areas.map((area) => (
-          <AreaCard key={area.slug} area={area} />
-        ))}
+      <div className="mt-6">
+        <AreaIndex
+          headingLevel="h1"
+          title="Áreas"
+          showDirectoryCta={false}
+          showKicker={false}
+          searchable
+          initialQuery={q}
+        />
       </div>
     </div>
   );

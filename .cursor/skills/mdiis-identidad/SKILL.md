@@ -12,7 +12,7 @@ Si el trabajo es la **página principal (`/`)**, leer también [home.md](home.md
 
 Sitio **oficial de trámites y áreas**, no un teaser ni una campaña. La gente entra a encontrar un programa o trámite y saber cómo acceder.
 
-- **Home:** “¿Qué necesitás?” — búsqueda y atajos por necesidad, no por organigrama.
+- **Home:** “Estamos para acompañarte” — búsqueda y atajos por necesidad, no por organigrama.
 - **Chrome:** header con escudo, wordmark y menú (Inicio, Programas y trámites, Áreas, Contacto). Footer visible en todas las páginas.
 - **Campaña Festipeques / Mes de las Infancias:** no está en v2. Si vuelve, entra como área o trámite, no como skin.
 

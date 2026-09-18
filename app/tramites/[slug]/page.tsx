@@ -1,36 +1,39 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { ServiceSheet } from "@/components/ServiceSheet";
-import { getTramite, tramites } from "@/content/tramites";
+import { listPublishedPagos } from "@/lib/pagos";
+import { getPublishedTramite, LEGACY_TRAMITE_SLUGS } from "@/lib/tramites";
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
-export function generateStaticParams() {
-  return tramites.map((tramite) => ({ slug: tramite.slug }));
-}
+export const revalidate = 120;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const tramite = getTramite(slug);
+  const tramite = await getPublishedTramite(slug);
   if (!tramite) {
     return { title: "Trámite no encontrado" };
   }
   return {
     title: tramite.title,
-    description: tramite.summary,
+    description: tramite.summary || tramite.title,
   };
 }
 
 export default async function TramitePage({ params }: Props) {
   const { slug } = await params;
-  const tramite = getTramite(slug);
+  const canonical = LEGACY_TRAMITE_SLUGS[slug];
+  if (canonical) redirect(`/tramites/${canonical}`);
+  const tramite = await getPublishedTramite(slug);
   if (!tramite) notFound();
+  const pagos =
+    tramite.kind === "pagos" ? await listPublishedPagos(tramite.slug) : [];
 
   return (
-    <div className="shell py-8 sm:py-12">
+    <div className="shell pt-4 pb-8 sm:pt-6 sm:pb-12">
       <Breadcrumb
         items={[
           { href: "/", label: "Inicio" },
@@ -39,7 +42,7 @@ export default async function TramitePage({ params }: Props) {
         ]}
       />
       <div className="mt-8">
-        <ServiceSheet tramite={tramite} />
+        <ServiceSheet tramite={tramite} pagos={pagos} />
       </div>
     </div>
   );

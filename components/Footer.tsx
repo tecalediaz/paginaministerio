@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { areas } from "@/content/areas";
-import { site } from "@/content/site";
+import { formatContactHours, site } from "@/content/site";
 import { SocialLinks } from "@/components/SocialLinks";
 
 export function Footer() {
@@ -19,7 +19,7 @@ export function Footer() {
         <div>
           <p className="text-sm font-bold tracking-wide uppercase">Áreas</p>
           <ul className="mt-3 space-y-2 text-sm text-white/80">
-            {areas.slice(0, 8).map((area) => (
+            {areas.slice(0, 4).map((area) => (
               <li key={area.slug}>
                 <Link className="hover:text-white" href={`/areas/${area.slug}`}>
                   {area.name}
@@ -38,14 +38,14 @@ export function Footer() {
           <address className="mt-3 space-y-2 text-sm not-italic text-white/80">
             <p>{site.contact.address}</p>
             <p>{site.contact.city}</p>
-            <p>{site.contact.hours}</p>
+            <p>{formatContactHours(site.contact.hours)}</p>
             <p>
               <a className="hover:text-white" href={site.contact.phoneHref}>
                 {site.contact.phone}
               </a>
             </p>
             <p>
-              <a className="hover:text-white" href={`mailto:${site.contact.email}`}>
+              <a className="break-all hover:text-white" href={`mailto:${site.contact.email}`}>
                 {site.contact.email}
               </a>
             </p>
@@ -55,7 +55,7 @@ export function Footer() {
           </div>
         </div>
       </div>
-      <div className="border-t border-white/10">
+      <div className="border-t border-white/10 pb-[env(safe-area-inset-bottom,0px)]">
         <p className="shell py-4 text-xs text-white/55">
           Sitio oficial · {site.province}
         </p>

@@ -10,7 +10,7 @@ export function AreaCard({ area }: { area: Area }) {
       <p className="text-xs font-bold tracking-[0.12em] text-fg-muted uppercase">
         {area.kind} · {need.label}
       </p>
-      <h3 className="mt-2 text-lg font-bold text-brand-navy">
+      <h3 className="mt-2 min-w-0 text-lg font-bold text-brand-navy">
         <Link className="hover:text-accent-warm" href={`/areas/${area.slug}`}>
           {area.name}
         </Link>

@@ -23,7 +23,7 @@ export const site = {
   contact: {
     address: "Av. Alem y Av. Los Caudillos",
     city: "Ciudad de La Rioja",
-    hours: "8:00–13:00 | 17:00–21:00",
+    hours: "08:00–20:00",
     phone: "+54 0380 445-3156",
     phoneHref: "tel:+543804453156",
     email: "consultas@desarrollosocial.larioja.gob.ar",
@@ -57,5 +57,35 @@ export const site = {
   ],
 } as const;
 
-export type SocialId = (typeof site.social)[number]["id"];
+export const socialNetworkIds = [
+  "instagram",
+  "facebook",
+  "x",
+  "tiktok",
+  "youtube",
+] as const;
+
+export type SocialId = (typeof socialNetworkIds)[number];
+
+const HOURS_RANGE = /^(\d{1,2})(?::(\d{2}))?[–-](\d{1,2})(?::(\d{2}))?$/;
+
+function padClock(hour: string, minute?: string) {
+  return `${hour.padStart(2, "0")}:${minute ?? "00"}`;
+}
+
+export function contactHoursParts(hours: string) {
+  const match = hours.match(HOURS_RANGE);
+  if (!match) return null;
+  return {
+    from: padClock(match[1], match[2]),
+    to: padClock(match[3], match[4]),
+  };
+}
+
+export function formatContactHours(hours: string) {
+  const parts = contactHoursParts(hours);
+  if (!parts) return hours;
+  return `${parts.from} a ${parts.to}`;
+}
+
 export type NavItem = (typeof site.nav)[number];

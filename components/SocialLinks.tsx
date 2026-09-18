@@ -1,5 +1,23 @@
 import type { ReactNode } from "react";
-import { site, type SocialId } from "@/content/site";
+import {
+  site,
+  socialNetworkIds,
+  type SocialId,
+} from "@/content/site";
+
+export type SocialLinkItem = {
+  id: SocialId;
+  label: string;
+  href: string;
+};
+
+const SOCIAL_LABELS: Record<SocialId, string> = {
+  instagram: "Instagram",
+  facebook: "Facebook",
+  x: "X",
+  tiktok: "TikTok",
+  youtube: "YouTube",
+};
 
 const icons: Record<SocialId, ReactNode> = {
   facebook: (
@@ -22,15 +40,83 @@ const icons: Record<SocialId, ReactNode> = {
       <path d="M16.6 5.82A4.17 4.17 0 0 1 14.9 2h-3.2v12.4a2.54 2.54 0 0 1-2.58 2.5 2.54 2.54 0 0 1-2.57-2.5 2.54 2.54 0 0 1 2.57-2.5c.27 0 .53.04.78.11V8.74a5.99 5.99 0 0 0-.78-.05A5.74 5.74 0 0 0 3.4 14.4a5.74 5.74 0 0 0 5.72 5.76A5.74 5.74 0 0 0 14.84 14.4V8.61a7.3 7.3 0 0 0 4.26 1.36V6.78a4.2 4.2 0 0 1-2.5-.96Z" />
     </svg>
   ),
+  youtube: (
+    <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4 fill-current">
+      <path d="M23.5 6.2a3.05 3.05 0 0 0-2.14-2.16C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.36.44A3.05 3.05 0 0 0 .5 6.2 32 32 0 0 0 0 12a32 32 0 0 0 .5 5.8 3.05 3.05 0 0 0 2.14 2.16C4.5 20.4 12 20.4 12 20.4s7.5 0 9.36-.44A3.05 3.05 0 0 0 23.5 17.8 32 32 0 0 0 24 12a32 32 0 0 0-.5-5.8ZM9.75 15.52V8.48L15.84 12l-6.09 3.52Z" />
+    </svg>
+  ),
 };
 
-export function SocialLinks({ inverted = false }: { inverted?: boolean }) {
+const CONSULT_SOCIAL_IDS: SocialId[] = ["instagram", "facebook", "x"];
+
+export function socialItemsFrom(
+  social?: Partial<Record<SocialId, string>>,
+): SocialLinkItem[] {
+  if (!social) return [];
+  return socialNetworkIds.flatMap((id) => {
+    const href = social[id]?.trim();
+    return href ? [{ id, label: SOCIAL_LABELS[id], href }] : [];
+  });
+}
+
+export function consultSocialItems(
+  areaSocial?: Partial<Record<SocialId, string>>,
+): SocialLinkItem[] {
+  return CONSULT_SOCIAL_IDS.flatMap((id) => {
+    const areaHref = areaSocial?.[id]?.trim();
+    if (areaHref) {
+      return [{ id, label: SOCIAL_LABELS[id], href: areaHref }];
+    }
+    const canonical = site.social.find((item) => item.id === id);
+    return canonical
+      ? [{ id, label: SOCIAL_LABELS[id], href: canonical.href }]
+      : [];
+  });
+}
+
+export function SocialNetworkButtons({
+  items,
+  label,
+}: {
+  items: readonly SocialLinkItem[];
+  label: string;
+}) {
+  if (items.length === 0) return null;
+
   return (
-    <ul
-      aria-label="Redes sociales"
-      className="flex items-center gap-2"
-    >
-      {site.social.map((item) => (
+    <ul aria-label={label} className="grid gap-3">
+      {items.map((item) => (
+        <li key={item.id}>
+          <a
+            href={item.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-12 w-full items-center justify-center gap-2.5 rounded-[6px] border border-line font-bold hover:bg-bg-soft"
+          >
+            {icons[item.id]}
+            {item.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function SocialLinks({
+  inverted = false,
+  items,
+  label = "Redes sociales",
+}: {
+  inverted?: boolean;
+  items?: readonly SocialLinkItem[];
+  label?: string;
+}) {
+  const links = items ?? site.social;
+  if (links.length === 0) return null;
+
+  return (
+    <ul aria-label={label} className="flex items-center gap-2">
+      {links.map((item) => (
         <li key={item.id}>
           <a
             href={item.href}

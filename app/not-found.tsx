@@ -4,7 +4,7 @@ export default function NotFound() {
   return (
     <div className="shell py-20">
       <p className="kicker">Error 404</p>
-      <h1 className="mt-2 text-4xl font-black text-brand-navy">
+      <h1 className="mt-2 text-3xl font-black tracking-tight text-brand-navy sm:text-4xl">
         Esa página no está
       </h1>
       <p className="mt-4 max-w-xl text-fg-muted">

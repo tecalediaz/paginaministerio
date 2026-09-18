@@ -1,15 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { needs, type NeedId } from "@/content/needs";
-import { areaOf } from "@/content/tramites";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { PlaceholderPhoto } from "@/components/PlaceholderPhoto";
+import { needPhotos } from "@/content/home-photos";
+import { needs } from "@/content/needs";
 import { searchCatalog } from "@/lib/search";
+import type { Tramite } from "@/lib/tramite";
 
-export function NeedExplorer() {
+export function NeedExplorer({ tramites }: { tramites: Tramite[] }) {
   const [query, setQuery] = useState("");
-  const results = useMemo(() => searchCatalog(query), [query]);
+  const { areas: areaHits, tramites: tramiteHits } = useMemo(
+    () => searchCatalog(query, tramites),
+    [query, tramites],
+  );
   const searching = query.trim().length > 0;
+  const noHits = areaHits.length === 0 && tramiteHits.length === 0;
 
   return (
     <div>
@@ -32,111 +38,214 @@ export function NeedExplorer() {
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Ejemplo: deporte, discapacidad, sede, alimentación"
+          placeholder="Deporte, discapacidad, alimentación…"
           autoComplete="off"
           className="h-14 w-full rounded-[6px] border border-line bg-white px-4 text-base shadow-[0_8px_30px_rgba(58,58,58,0.06)]"
         />
       </form>
 
       {searching ? (
-        <div className="mt-4" aria-live="polite">
-          {results.tramites.length === 0 && results.areas.length === 0 ? (
+        <div className="mt-4 grid gap-6" aria-live="polite">
+          {noHits ? (
             <p className="text-fg-muted">
-              No hay resultados para “{query}”. Probá con otra palabra o
-              consultá en sede.
+              Todavía no hay trámites disponibles. Consultá en sede o por
+              teléfono.
             </p>
-          ) : (
-            <div className="space-y-6">
-              {results.tramites.length > 0 ? (
-                <section>
-                  <h2 className="text-sm font-bold tracking-[0.12em] text-fg-muted uppercase">
-                    Trámites
-                  </h2>
-                  <ul className="mt-3 divide-y divide-line border-t border-b border-line">
-                    {results.tramites.map((tramite) => (
-                      <li key={tramite.slug}>
-                        <Link
-                          href={`/tramites/${tramite.slug}`}
-                          className="flex min-h-11 flex-col py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4"
-                        >
-                          <span className="font-semibold">{tramite.title}</span>
-                          <span className="text-sm text-fg-muted">
-                            {areaOf(tramite).name}
-                          </span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              ) : null}
-              {results.areas.length > 0 ? (
-                <section>
-                  <h2 className="text-sm font-bold tracking-[0.12em] text-fg-muted uppercase">
-                    Áreas
-                  </h2>
-                  <ul className="mt-3 divide-y divide-line border-t border-b border-line">
-                    {results.areas.map((area) => (
-                      <li key={area.slug}>
-                        <Link
-                          href={`/areas/${area.slug}`}
-                          className="flex min-h-11 items-center py-3 font-semibold"
-                        >
-                          {area.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              ) : null}
-            </div>
-          )}
+          ) : null}
+          {tramiteHits.length > 0 ? (
+            <section>
+              <h2 className="text-sm font-bold tracking-[0.12em] text-fg-muted uppercase">
+                Programas y trámites
+              </h2>
+              <ul className="mt-3 divide-y divide-line border-t border-b border-line">
+                {tramiteHits.map((tramite) => (
+                  <li key={tramite.slug}>
+                    <Link
+                      href={`/tramites/${tramite.slug}`}
+                      className="flex min-h-11 items-center py-3 font-semibold"
+                    >
+                      {tramite.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+          {areaHits.length > 0 ? (
+            <section>
+              <h2 className="text-sm font-bold tracking-[0.12em] text-fg-muted uppercase">
+                Áreas
+              </h2>
+              <ul className="mt-3 divide-y divide-line border-t border-b border-line">
+                {areaHits.map((area) => (
+                  <li key={area.slug}>
+                    <Link
+                      href={`/areas/${area.slug}`}
+                      className="flex min-h-11 items-center py-3 font-semibold"
+                    >
+                      {area.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
         </div>
       ) : null}
 
-      <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <NeedRail>
         {needs.map((need) => (
-          <li key={need.id}>
+          <li key={need.id} className="need-rail__item">
             <Link
               href={`/tramites?need=${need.id}`}
-              className="flex min-h-[5.5rem] flex-col justify-center border border-line bg-white px-4 py-3 transition-transform hover:-translate-y-0.5"
+              className="relative block min-h-11 h-full overflow-hidden rounded-xl transition-transform hover:-translate-y-0.5 max-sm:hover:translate-y-0"
             >
-              <span className="font-bold text-brand-navy">{need.label}</span>
-              <span className="mt-1 text-sm text-fg-muted">{need.hint}</span>
+              <PlaceholderPhoto
+                photo={needPhotos[need.id]}
+                className="aspect-[3/4]"
+                sizes="(min-width: 1024px) 25vw, (min-width: 640px) 45vw, 80vw"
+                compact
+                overlay={
+                  <span className="block text-base font-bold text-pretty text-fg-on-dark sm:text-lg lg:text-xl">
+                    {need.label}
+                  </span>
+                }
+              />
             </Link>
           </li>
         ))}
-      </ul>
+      </NeedRail>
     </div>
   );
 }
 
-export function NeedPills({ active }: { active?: NeedId }) {
+function NeedRail({ children }: { children: ReactNode }) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const railRef = useRef<HTMLUListElement>(null);
+
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    const rail = railRef.current;
+    if (!wrap || !rail) return;
+
+    const updateEdges = () => {
+      const max = rail.scrollWidth - rail.clientWidth;
+      const left = rail.scrollLeft;
+      wrap.dataset.overflowLeft = left > 8 ? "true" : "false";
+      wrap.dataset.overflowRight = max > 8 && left < max - 8 ? "true" : "false";
+    };
+
+    const onWheel = (event: WheelEvent) => {
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+      const max = rail.scrollWidth - rail.clientWidth;
+      if (max <= 0) return;
+      const next = rail.scrollLeft + event.deltaY;
+      const clamped = Math.max(0, Math.min(max, next));
+      if (clamped === rail.scrollLeft) return;
+      event.preventDefault();
+      rail.scrollLeft = clamped;
+    };
+
+    const DRAG_THRESHOLD = 6;
+    let pointerId: number | null = null;
+    let startX = 0;
+    let startScroll = 0;
+    let moved = false;
+
+    const setDragging = (value: boolean) => {
+      if (value) {
+        rail.dataset.dragging = "true";
+      } else {
+        delete rail.dataset.dragging;
+      }
+    };
+
+    const suppressClick = (event: Event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    };
+
+    const endDrag = (event: PointerEvent) => {
+      if (pointerId !== event.pointerId) return;
+      pointerId = null;
+      setDragging(false);
+      if (moved) {
+        rail.addEventListener("click", suppressClick, {
+          capture: true,
+          once: true,
+        });
+      }
+      if (rail.hasPointerCapture(event.pointerId)) {
+        rail.releasePointerCapture(event.pointerId);
+      }
+    };
+
+    const onDragStart = (event: DragEvent) => {
+      event.preventDefault();
+    };
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.pointerType === "touch") return;
+      if (event.button !== 0) return;
+      const max = rail.scrollWidth - rail.clientWidth;
+      if (max <= 0) return;
+      pointerId = event.pointerId;
+      startX = event.clientX;
+      startScroll = rail.scrollLeft;
+      moved = false;
+      setDragging(false);
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      if (pointerId !== event.pointerId) return;
+      if (event.pointerType === "touch") return;
+      const dx = event.clientX - startX;
+      if (!moved && Math.abs(dx) < DRAG_THRESHOLD) return;
+      moved = true;
+      setDragging(true);
+      if (!rail.hasPointerCapture(event.pointerId)) {
+        rail.setPointerCapture(event.pointerId);
+      }
+      event.preventDefault();
+      rail.scrollLeft = startScroll - dx;
+    };
+
+    updateEdges();
+    rail.addEventListener("scroll", updateEdges, { passive: true });
+    rail.addEventListener("wheel", onWheel, { passive: false });
+    rail.addEventListener("dragstart", onDragStart);
+    rail.addEventListener("pointerdown", onPointerDown);
+    rail.addEventListener("pointermove", onPointerMove);
+    rail.addEventListener("pointerup", endDrag);
+    rail.addEventListener("pointercancel", endDrag);
+    const observer = new ResizeObserver(updateEdges);
+    observer.observe(rail);
+    return () => {
+      rail.removeEventListener("scroll", updateEdges);
+      rail.removeEventListener("wheel", onWheel);
+      rail.removeEventListener("dragstart", onDragStart);
+      rail.removeEventListener("pointerdown", onPointerDown);
+      rail.removeEventListener("pointermove", onPointerMove);
+      rail.removeEventListener("pointerup", endDrag);
+      rail.removeEventListener("pointercancel", endDrag);
+      observer.disconnect();
+    };
+  }, []);
+
   return (
-    <ul className="flex flex-wrap gap-2">
-      <li>
-        <Link
-          href="/tramites"
-          className={`inline-flex min-h-11 items-center rounded-[6px] border px-3 text-sm font-semibold ${
-            !active ? "border-fg bg-fg text-white" : "border-line bg-white"
-          }`}
-        >
-          Todas
-        </Link>
-      </li>
-      {needs.map((need) => (
-        <li key={need.id}>
-          <Link
-            href={`/tramites?need=${need.id}`}
-            className={`inline-flex min-h-11 items-center rounded-[6px] border px-3 text-sm font-semibold ${
-              active === need.id
-                ? "border-fg bg-fg text-white"
-                : "border-line bg-white"
-            }`}
-          >
-            {need.label}
-          </Link>
-        </li>
-      ))}
-    </ul>
+    <div
+      ref={wrapRef}
+      className="need-rail-wrap mt-6"
+      data-overflow-left="false"
+      data-overflow-right="true"
+    >
+      <ul
+        ref={railRef}
+        className="need-rail"
+        aria-label="Atajos por necesidad"
+      >
+        {children}
+      </ul>
+    </div>
   );
 }
