@@ -1,5 +1,10 @@
 export const needs = [
   {
+    id: "educacion",
+    label: "Educación",
+    hint: "Educación y fortalecimiento escolar y social.",
+  },
+  {
     id: "alimentacion",
     label: "Alimentación",
     hint: "Comedores, asistencia alimentaria y consultas del área.",

@@ -1,3 +1,5 @@
+import "server-only";
+import { bookingAvailability } from "./booking-availability";
 import { neon } from "@neondatabase/serverless";
 import { unstable_noStore as noStore } from "next/cache";
 import { areas, getArea } from "@/content/areas";
@@ -43,6 +45,9 @@ function isTramiteRow(row: Record<string, unknown>): row is {
   requirements: string | null;
   notes: string | null;
   form_fields: unknown;
+  type_config: unknown;
+  booking_counts: Record<string, number> | null;
+  accepts_submissions: boolean;
 } {
   return (
     typeof row.slug === "string" &&
@@ -66,11 +71,23 @@ function mapRow(row: {
   requirements: string | null;
   notes: string | null;
   form_fields: unknown;
+  type_config: unknown;
+  booking_counts: Record<string, number> | null;
+  accepts_submissions: boolean;
 }): Tramite {
   const areaSlug = resolveAreaSlug(row.area_slug);
   const need = resolveNeed(row.need, areaSlug);
   const imageUrl = row.image_url?.trim() ?? "";
-  const kind = row.kind === "pagos" ? "pagos" : "form";
+  const kind = ["turnos", "documentos", "pagos"].includes(row.kind ?? "") ? row.kind as Tramite["kind"] : "form";
+  const formFields = kind === "pagos" ? [] : parseTramiteFormFields(row.form_fields);
+  let fullBookingDates: { id: string; label: string }[] = [];
+  if (["turnos"].includes(kind)) {
+    const config = row.type_config as { slots?: { id: string; date: string; capacity: number }[] } | null;
+    const reservation = formFields.find(f => f.name === "reserva");
+    const availability = bookingAvailability(config?.slots ?? [], row.booking_counts, reservation?.options ?? []);
+    fullBookingDates = availability.fullDates;
+    if (reservation) reservation.options = availability.options;
+  }
   return {
     slug: row.slug,
     title: row.title,
@@ -85,7 +102,11 @@ function mapRow(row: {
     how: row.how ?? "",
     requirements: row.requirements ?? "",
     notes: row.notes ?? "",
-    formFields: kind === "pagos" ? [] : parseTramiteFormFields(row.form_fields),
+    formFields,
+    fullBookingDates,
+    documents: documentLinks(row.type_config),
+    acceptsSubmissions: ["form", "turnos"].includes(row.kind ?? "") && row.accepts_submissions === true &&
+      formFields.length > 0 && (!["turnos"].includes(kind) || Boolean(formFields.find(f => f.name === "reserva")?.options?.length)) && (isAreaSlug(row.area_slug) || row.area_slug === "general"),
   };
 }
 
@@ -104,9 +125,13 @@ async function queryPublished(
   const sql = neon(url);
   const result = await sql`
     SELECT slug, title, need, area_slug, kind, image_url, image_alt,
-      summary, who, how, requirements, notes, form_fields
+      summary, who, how, requirements, notes, form_fields, type_config,
+      (SELECT jsonb_object_agg(counts.slot, counts.total) FROM
+        (SELECT answers->>'reserva' AS slot, count(*)::int AS total FROM site_tramite_submissions WHERE tramite_id = site_tramites.id AND answers->>'reserva' IS NOT NULL GROUP BY answers->>'reserva') counts) AS booking_counts,
+      (notification_email IS NOT NULL AND length(btrim(notification_email)) <= 254 AND
+        btrim(notification_email) ~ '^(?![.])(?!.*[.][.])[A-Za-z0-9_''+.-]*[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9-]*[.])+[A-Za-z]{2,}$') AS accepts_submissions
     FROM site_tramites
-    WHERE published = true
+    WHERE published = true AND archived_at IS NULL
     ORDER BY sort_order ASC, published_at DESC NULLS LAST, created_at DESC
   `;
 
@@ -149,9 +174,13 @@ export async function getPublishedTramite(
     const sql = neon(url);
     const result = await sql`
       SELECT slug, title, need, area_slug, kind, image_url, image_alt,
-        summary, who, how, requirements, notes, form_fields
+        summary, who, how, requirements, notes, form_fields, type_config,
+      (SELECT jsonb_object_agg(counts.slot, counts.total) FROM
+        (SELECT answers->>'reserva' AS slot, count(*)::int AS total FROM site_tramite_submissions WHERE tramite_id = site_tramites.id AND answers->>'reserva' IS NOT NULL GROUP BY answers->>'reserva') counts) AS booking_counts,
+        (notification_email IS NOT NULL AND length(btrim(notification_email)) <= 254 AND
+          btrim(notification_email) ~ '^(?![.])(?!.*[.][.])[A-Za-z0-9_''+.-]*[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9-]*[.])+[A-Za-z]{2,}$') AS accepts_submissions
       FROM site_tramites
-      WHERE published = true AND slug = ${slug}
+      WHERE published = true AND archived_at IS NULL AND slug = ${slug}
       LIMIT 1
     `;
     const row = rowsOf(result).find(isTramiteRow);
@@ -160,4 +189,12 @@ export async function getPublishedTramite(
     console.error("No se pudieron leer los trámites de Neon", error);
     return null;
   }
+}
+
+function documentLinks(raw: unknown): NonNullable<Tramite["documents"]> {
+  if (!raw || typeof raw !== "object" || !("documents" in raw) || !Array.isArray(raw.documents)) return [];
+  return raw.documents.filter((d): d is {title:string;url:string} => {
+    if (!d || typeof d.title !== "string" || typeof d.url !== "string") return false;
+    try { const url = new URL(d.url); return url.protocol === "https:" || (url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname) && /^\/api\/public\/tramites\/[0-9a-f-]+\/documents\/[0-9a-f-]+$/.test(url.pathname)); } catch { return false; }
+  });
 }

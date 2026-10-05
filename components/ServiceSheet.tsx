@@ -1,83 +1,17 @@
 import Link from "next/link";
+import { ResourceDownloads } from "./ResourceDownloads";
 import { TramiteForm } from "@/components/TramiteForm";
 import { getNeed } from "@/content/needs";
 import { site } from "@/content/site";
 import { areaOf, type Tramite } from "@/lib/tramite";
-import {
-  formatPagoEstado,
-  type PagoPublico,
-} from "@/lib/pagos";
+import type { PagoPublico } from "@/lib/pagos";
+import { PagosTable } from "@/components/PagosTable";
 
 function lines(value: string) {
   return value
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean);
-}
-
-function PagosTable({ items }: { items: PagoPublico[] }) {
-  if (items.length === 0) {
-    return (
-      <div className="mt-10 border-t border-line pt-8">
-        <h2 className="text-lg font-bold text-brand-navy">Pagos acreditados</h2>
-        <p className="mt-3 max-w-2xl text-fg-muted">
-          Todavía no hay acreditaciones publicadas. Cuando el ministerio informe
-          el pago de un programa, va a aparecer en esta tabla.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mt-10 border-t border-line pt-8">
-      <h2 className="text-lg font-bold text-brand-navy">Pagos acreditados</h2>
-      <div className="mt-4 overflow-x-auto">
-        <table className="w-full min-w-[36rem] border-collapse text-left">
-          <thead>
-            <tr className="border-b border-line">
-              <th className="py-3 pr-4 text-sm font-bold tracking-wide text-fg-muted uppercase">
-                Programa
-              </th>
-              <th className="py-3 pr-4 text-sm font-bold tracking-wide text-fg-muted uppercase">
-                Periodo
-              </th>
-              <th className="py-3 text-sm font-bold tracking-wide text-fg-muted uppercase">
-                Estado
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item) => {
-              const estado = formatPagoEstado(
-                new Date(item.scheduledAt),
-                item.paidAt ? new Date(item.paidAt) : null,
-              );
-              return (
-                <tr key={item.id} className="border-b border-line align-top">
-                  <td className="py-4 pr-4 font-semibold">{item.programa}</td>
-                  <td className="py-4 pr-4">{item.periodo}</td>
-                  <td className="py-4">
-                    <span
-                      className={
-                        estado.status === "paid"
-                          ? "font-semibold"
-                          : "text-fg-muted"
-                      }
-                    >
-                      {estado.label}
-                    </span>
-                    {item.note ? (
-                      <p className="mt-1 text-sm text-fg-muted">{item.note}</p>
-                    ) : null}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
 }
 
 export function ServiceSheet({
@@ -162,10 +96,21 @@ export function ServiceSheet({
           <h1 className="mt-3 text-3xl font-black tracking-tight text-brand-navy sm:text-4xl">
             {tramite.title}
           </h1>
+          {tramite.kind === "documentos" ? <ResourceDownloads documents={tramite.documents ?? []} /> : null}
           {isPagos ? <PagosTable items={pagos} /> : null}
+          {tramite.fullBookingDates?.length ? <div className="mt-8 space-y-3">{tramite.fullBookingDates.map(date => <div key={date.id} className="border border-line bg-bg-soft p-5" role="status"><p className="font-bold text-brand-navy">{date.label}</p><p className="mt-2 text-fg-muted">Lo sentimos, esta fecha se quedó sin cupos disponibles.</p></div>)}</div> : null}
           {!isPagos && tramite.formFields.length > 0 ? (
             <div className="mt-10">
-              <TramiteForm slug={tramite.slug} fields={tramite.formFields} />
+              {tramite.acceptsSubmissions ? (
+                <TramiteForm slug={tramite.slug} fields={tramite.formFields} booking={tramite.kind === "turnos"} />
+              ) : (
+                <div className="border border-line bg-white px-5 py-6 sm:px-6 sm:py-7">
+                  <h2 className="text-xl font-black tracking-tight text-brand-navy">{tramite.kind === "form" ? "Formulario no disponible" : "Sin fechas disponibles"}</h2>
+                  <p className="mt-3 leading-relaxed text-fg-muted">
+                    {tramite.kind === "form" ? "Este trámite no recibe solicitudes en este momento. Podés consultar por teléfono, WhatsApp o en sede." : "Lo sentimos, no hay fechas con cupos disponibles en este momento. Podés consultar al área por teléfono, WhatsApp o en sede."}
+                  </p>
+                </div>
+              )}
             </div>
           ) : null}
         </article>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { enviarTramite } from "@/app/tramites/actions";
 import { Select } from "@/components/Select";
 import {
@@ -99,16 +99,28 @@ function NombreInput({
 export function TramiteForm({
   slug,
   fields,
+  booking = false,
 }: {
   slug: string;
   fields: TramiteFormField[];
+  booking?: boolean;
 }) {
   const [state, action, pending] = useActionState(
     enviarTramite,
     tramiteFormInicial,
   );
+  const [bookingLabel, setBookingLabel] = useState("");
+  const attempt = useRef<string | null>(null);
 
   if (fields.length === 0) return null;
+
+  if (booking && state.unavailableDate) {
+    return <div className="border border-line bg-bg-soft px-5 py-6" role="alert">
+      <h2 className="text-xl font-black text-brand-navy">Lo sentimos, esta fecha se quedó sin cupos disponibles.</h2>
+      {bookingLabel ? <p className="mt-3 font-semibold">{bookingLabel}</p> : null}
+      <a href={`/tramites/${slug}`} className="mt-4 inline-flex min-h-11 items-center font-bold text-accent-warm">Ver otras fechas disponibles</a>
+    </div>;
+  }
 
   if (state.ok) {
     return (
@@ -119,12 +131,17 @@ export function TramiteForm({
       >
         <p className="kicker">Trámite</p>
         <h2 className="mt-2 text-2xl font-black tracking-tight text-brand-navy">
-          Solicitud enviada
+          {booking ? "Reserva confirmada" : "Solicitud enviada"}
         </h2>
         <p className="mt-3 leading-relaxed text-fg-muted">
-          Recibimos tu consulta. Si necesitás confirmar o continuar, usá
-          teléfono, WhatsApp o acercate a la sede.
+          {booking ? "Tu lugar quedó reservado automáticamente. Guardá el número de reserva para consultar al área." : "Tu solicitud quedó registrada. Guardá el número de recepción para consultar por teléfono, WhatsApp o en sede."}
         </p>
+        {booking && bookingLabel ? <p className="mt-3 font-bold text-brand-navy">{bookingLabel}</p> : null}
+        {state.receiptId ? (
+          <p className="mt-3 break-all text-sm font-semibold text-brand-navy">
+            Número de recepción: {state.receiptId}
+          </p>
+        ) : null}
       </div>
     );
   }
@@ -135,6 +152,13 @@ export function TramiteForm({
       className="border border-line bg-white px-5 py-6 sm:px-6 sm:py-7"
       noValidate
       onSubmit={(event) => {
+        if (booking) {
+          const chosen = new FormData(event.currentTarget).get("reserva");
+          setBookingLabel(fields.find(f => f.name === "reserva")?.options?.find(o => o.value === chosen)?.label ?? "");
+        }
+        attempt.current ??= crypto.randomUUID();
+        const input = event.currentTarget.elements.namedItem("idempotency_key");
+        if (input instanceof HTMLInputElement) input.value = attempt.current;
         for (const el of event.currentTarget.querySelectorAll<HTMLInputElement>(
           "input[data-nombre-field]",
         )) {
@@ -143,11 +167,16 @@ export function TramiteForm({
       }}
     >
       <input type="hidden" name="slug" value={slug} />
+      <input type="hidden" name="idempotency_key" defaultValue="" />
+      <div className="hidden" aria-hidden="true">
+        <label htmlFor={`tramite-${slug}-website`}>Dejá este campo vacío</label>
+        <input id={`tramite-${slug}-website`} name="website" type="text" tabIndex={-1} autoComplete="off" />
+      </div>
       <h2 className="text-xl font-black tracking-tight text-brand-navy">
-        Formulario
+        {booking ? "Reservar un lugar" : "Formulario"}
       </h2>
       <p className="mt-2 text-sm leading-relaxed text-fg-muted">
-        Completá los datos para este trámite.
+        {booking ? "Elegí una fecha disponible y completá tus datos. Tu lugar se confirma al enviar." : "Completá los datos para este trámite."}
       </p>
       {state.errors.form ? (
         <p className="mt-4 text-sm font-semibold text-brand-red" role="alert">
@@ -252,9 +281,11 @@ export function TramiteForm({
       <button
         type="submit"
         disabled={pending}
+        aria-busy={pending}
         className="mt-6 inline-flex min-h-14 w-full items-center justify-center rounded-[6px] bg-accent px-5 font-bold text-white hover:bg-accent-warm disabled:opacity-60 sm:w-auto"
       >
-        {pending ? "Enviando…" : "Enviar"}
+        {pending ? <svg aria-hidden="true" viewBox="0 0 24 24" className="mr-2 h-4 w-4 animate-spin"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="3" opacity="0.3" /><path d="M12 3a9 9 0 0 1 9 9" fill="none" stroke="currentColor" strokeWidth="3" /></svg> : null}
+        {pending ? "Enviando…" : booking ? "Confirmar reserva" : "Enviar"}
       </button>
     </form>
   );

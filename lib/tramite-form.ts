@@ -23,7 +23,13 @@ export type TramiteFormField = {
 export type TramiteFormState = {
   ok: boolean;
   errors: Record<string, string>;
+  receiptId?: string;
+  unavailableDate?: boolean;
 };
+
+export type TramiteFormValidation =
+  | { ok: true; errors: Record<string, string>; answers: Record<string, string> }
+  | { ok: false; errors: Record<string, string> };
 
 export const tramiteFormInicial: TramiteFormState = {
   ok: false,
@@ -94,7 +100,7 @@ export function parseTramiteFormFields(raw: unknown): TramiteFormField[] {
       typeof row.name === "string" && /^[a-z][a-z0-9_]{0,63}$/.test(row.name)
         ? row.name
         : "";
-    if (!name || used.has(name)) continue;
+    if (!name || ["slug", "idempotency_key", "website"].includes(name) || used.has(name)) continue;
     used.add(name);
 
     const field: TramiteFormField = {
@@ -158,11 +164,17 @@ export function sanitizeDni(value: string) {
 export function validateTramiteForm(
   formData: FormData,
   fields: TramiteFormField[],
-): TramiteFormState {
+): TramiteFormValidation {
   const errors: Record<string, string> = {};
+  const answers: Record<string, string> = {};
 
   for (const field of fields) {
     const raw = read(formData, field.name);
+    if (formData.getAll(field.name).length > 1 || formData.get(field.name) instanceof Blob) {
+      errors[field.name] = "Ingresá un único valor de texto.";
+      continue;
+    }
+    answers[field.name] = raw;
     const max = field.maxLength ?? (field.type === "textarea" ? 2000 : 160);
 
     if (field.type === "dni") {
@@ -171,6 +183,7 @@ export function validateTramiteForm(
         continue;
       }
       const dni = digits(raw);
+      answers[field.name] = dni;
       if (dni.length < 7 || dni.length > 8) {
         errors[field.name] = "Ingresá un DNI de 7 u 8 números.";
       }
@@ -190,12 +203,11 @@ export function validateTramiteForm(
       const palabras = raw.split(/\s+/).filter(Boolean);
       if (palabras.length > NOMBRE_MAX_PALABRAS) {
         errors[field.name] = `Máximo ${NOMBRE_MAX_PALABRAS} palabras.`;
-      } else if (raw !== normalizarNombre(raw).value) {
-        errors[field.name] = "Escribí cada palabra con mayúscula inicial.";
-      }
+      } else answers[field.name] = normalizarNombre(raw).value;
     } else if (field.type === "email" && !EMAIL.test(raw)) {
       errors[field.name] = "Ingresá un correo electrónico válido.";
     } else if (field.type === "tel") {
+      answers[field.name] = digits(raw);
       if (digits(raw).length < 8) {
         errors[field.name] = "Ingresá un teléfono de contacto.";
       }
@@ -210,5 +222,5 @@ export function validateTramiteForm(
   if (Object.keys(errors).length > 0) {
     return { ok: false, errors };
   }
-  return { ok: true, errors: {} };
+  return { ok: true, errors: {}, answers };
 }

@@ -15,6 +15,12 @@ export const ministerPhoto: HomePhoto = {
 };
 
 export const needPhotos: Record<NeedId, HomePhoto> = {
+  educacion: {
+    src: "/placeholders/trabajo.jpg",
+    alt: "Imagen provisoria de capacitación para la tarjeta de Educación.",
+    replaceWith:
+      "Actividad de educación o fortalecimiento escolar y social del ministerio.",
+  },
   alimentacion: {
     src: "/placeholders/alimentacion.jpg",
     alt: "Imagen provisoria de asistencia alimentaria.",

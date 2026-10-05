@@ -15,10 +15,11 @@ export const site = {
     { label: "Contacto", href: "/contacto" },
   ],
   slogan: [
-    { text: "PAN", need: "alimentacion" },
-    { text: "TECHO", need: "territorio" },
-    { text: "TRABAJO", need: "trabajo" },
-    { text: "+ COMUNIDAD", need: "infancias" },
+    { text: "EDUCACIÓN", need: "educacion", href: "/areas/fes" },
+    { text: "INFANCIAS", need: "infancias", href: "/areas/ninez" },
+    { text: "TRABAJO", need: "trabajo", href: "/areas/economia-popular" },
+    { text: "DEPORTE", need: "deporte", href: "/areas/deportes" },
+    { text: "DISCAPACIDAD", need: "discapacidad", href: "/areas/discapacidad" },
   ],
   contact: {
     address: "Av. Alem y Av. Los Caudillos",

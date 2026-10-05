@@ -12,7 +12,7 @@ export type TramiteImage = {
   replaceWith?: string;
 };
 
-export type TramiteKind = "form" | "pagos";
+export type TramiteKind = "form" | "pagos" | "turnos" | "documentos";
 
 export type Tramite = {
   slug: string;
@@ -27,6 +27,9 @@ export type Tramite = {
   requirements: string;
   notes: string;
   formFields: TramiteFormField[];
+  acceptsSubmissions: boolean;
+  fullBookingDates?: { id: string; label: string }[];
+  documents?: { title: string; url: string; mimeType?: string; size?: number }[];
 };
 
 export function areaOf(tramite: Tramite) {

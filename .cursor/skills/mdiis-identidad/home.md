@@ -8,7 +8,7 @@ El H1 del hero es **“Estamos para acompañarte”** (cercano, institucional). 
 
 1. Es la página oficial del Ministerio de Desarrollo, Igualdad e Integración Social, Provincia de La Rioja.
 2. Ministro: Alfredo Menem (nombre y cargo en el **footer**; sin bio inventada). No va en el hero.
-3. Buscador y atajos: alimentación, infancias, discapacidad, deporte, trabajo, territorio.
+3. Buscador y atajos: educación, alimentación, infancias, discapacidad, deporte, trabajo, territorio.
 4. Gestión: publicaciones con imagen y título (Neon / AlMinisterio, tabla `site_gestiones`). Si no hay publicadas, la sección no se muestra. No es la vía principal al trámite.
 5. Sede, horario, teléfono, WhatsApp.
 
@@ -16,7 +16,7 @@ El H1 del hero es **“Estamos para acompañarte”** (cercano, institucional). 
 
 - Fondo `#f9f9f9`, Antenna, kicker rojo `#e30613`, títulos navy `#1e2a4a` / carbón `#3a3a3a`, acento verde `#4caf50`.
 - Botones rectángulo bajo (radio 6px), tap ≥44px.
-- PAN / TECHO / TRABAJO + COMUNIDAD como ejes de necesidad, no como franja de campaña.
+- EDUCACIÓN / INFANCIAS / TRABAJO / DEPORTE / DISCAPACIDAD enlazan directamente a las áreas FES, Niñez, Economía Social y Popular, Deportes y Discapacidad, respectivamente.
 - Footer visible. Hay scroll. Mobile-first.
 - `prefers-reduced-motion`: sin animación de entrada.
 - Fotos de apoyo en home (ministro, necesidades, sede). Cada placeholder lleva “Reemplazar esta foto” hasta tener archivo oficial. Las fotos de gestión vienen de AlMinisterio.
