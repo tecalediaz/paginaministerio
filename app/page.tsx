@@ -68,14 +68,27 @@ export default async function Home() {
           />
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-1">
             <div>
-              <p className="kicker">Sede</p>
+              <p className="kicker">Sede central</p>
               <p className="mt-3 text-lg font-bold">{site.contact.address}</p>
               <p className="text-fg-muted">{site.contact.city}</p>
             </div>
             <div>
-              <p className="kicker">Horario</p>
+              <p className="kicker">Horario de atención</p>
               <SedeHours hours={site.contact.hours} />
+              <p className="mt-2 text-sm text-fg-muted">Atención al público en la sede central.</p>
             </div>
+            <a
+              href={site.contact.mapLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-[6px] bg-accent px-5 font-bold text-white transition-colors hover:bg-accent-warm sm:col-span-2 lg:col-span-1 lg:justify-self-start"
+            >
+              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z" />
+                <circle cx="12" cy="10" r="2.5" />
+              </svg>
+              Cómo llegar · Google Maps
+            </a>
           </div>
         </div>
       </section>

@@ -31,8 +31,7 @@ export const site = {
     whatsappHref: "https://wa.me/543804453156",
     mapSrc:
       "https://www.openstreetmap.org/export/embed.html?bbox=-66.872%2C-29.425%2C-66.840%2C-29.400&layer=mapnik&marker=-29.4135%2C-66.8563",
-    mapLink:
-      "https://www.openstreetmap.org/?mlat=-29.4135&mlon=-66.8563#map=16/-29.4135/-66.8563",
+    mapLink: "https://maps.app.goo.gl/Jkxb12RFeGVpndb28",
   },
   social: [
     {

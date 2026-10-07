@@ -1,5 +1,5 @@
 import { createHmac, randomUUID } from "node:crypto";
-import { areas } from "../content/areas";
+import { getArea } from "../content/areas";
 import {
   parseTramiteFormFields, validateTramiteForm,
   type TramiteFormField, type TramiteFormState,
@@ -17,7 +17,7 @@ const EMAIL = /^(?![.])(?!.*[.][.])[A-Za-z0-9_'+.-]*[A-Za-z0-9_+-]@([A-Za-z0-9][
 
 export function resolveSubmissionArea(slug: string): string | null {
   if (slug === "general") return "atencion-sede";
-  return areas.some((area) => area.slug === slug) ? slug : null;
+  return getArea(slug) ? slug : null;
 }
 
 export function validNotificationEmail(value: unknown): value is string {
@@ -27,7 +27,7 @@ export function validNotificationEmail(value: unknown): value is string {
 export function acceptsSubmissions(config: Pick<SubmissionConfig,
   "kind" | "published" | "archived_at" | "area_slug" | "notification_email" | "form_fields"
 >): boolean {
-  return config.published === true && config.archived_at === null && ["form", "turnos"].includes(config.kind ?? "") &&
+  return config.published === true && config.archived_at === null && ["form", "inscripcion", "turnos"].includes(config.kind ?? "") &&
     resolveSubmissionArea(config.area_slug) !== null && validNotificationEmail(config.notification_email) &&
     parseTramiteFormFields(config.form_fields).length > 0;
 }
@@ -53,7 +53,7 @@ export type SubmissionWrite = {
   answers: Record<string, string>;
 };
 export type SubmissionPersistenceResult = {
-  status: "accepted" | "replayed" | "rate_limited" | "unavailable" | "conflict" | "configuration_changed" | "full" | "already_booked";
+  status: "accepted" | "replayed" | "rate_limited" | "unavailable" | "conflict" | "configuration_changed" | "full" | "already_booked" | "registration_full" | "already_registered" | "registration_closed" | "registration_not_open";
   receipt_id: string | null;
 };
 export type SubmissionRepository = {
@@ -103,6 +103,9 @@ export async function receiveSubmission(
         typeof result.receipt_id === "string" && UUID.test(result.receipt_id)) {
       return { ok: true, errors: {}, receiptId: result.receipt_id };
     }
+    if (result.status === "registration_full") return { ok: false, unavailableDate: true, errors: { form: "Se completaron todos los lugares de esta inscripción." } };
+    if (result.status === "registration_closed" || result.status === "registration_not_open") return { ok: false, unavailableDate: true, errors: { form: "La inscripción no está abierta en este momento." } };
+    if (result.status === "already_registered") return { ok: false, errors: { dni: "Este DNI ya tiene una inscripción confirmada." } };
     if (result.status === "rate_limited") return {
       ok: false, errors: { form: "Alcanzaste el límite de envíos. Esperá diez minutos y volvé a intentarlo." },
     };

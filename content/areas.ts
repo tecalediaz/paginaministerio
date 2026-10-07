@@ -14,7 +14,8 @@ export type Area = {
   social?: AreaSocial;
 };
 
-export const areas: Area[] = [
+// Keep the internal catalogue for existing CMS records and submission routing.
+const areaCatalog: Area[] = [
   {
     slug: "deportes",
     name: "Secretaría de Deportes, Recreación e Inclusión",
@@ -64,7 +65,7 @@ export const areas: Area[] = [
     summary:
       "Articula el trabajo del ministerio con municipios y territorios de la provincia.",
     audience: "Vecinas, vecinos y gobiernos locales que necesitan llegada territorial.",
-    access: "Consultar en sede o a través del Consejo Provincial de Desarrollo Social.",
+    access: "Consultar en sede o por los canales de contacto del ministerio.",
   },
   {
     slug: "ninez",
@@ -148,7 +149,20 @@ export const areas: Area[] = [
   },
 ];
 
+const internalAreaSlugs = new Set([
+  "innovacion-publica",
+  "proyectos-especiales",
+  "coprodeso",
+  "atencion-sede",
+]);
+
+export const areas = areaCatalog.filter((area) => !internalAreaSlugs.has(area.slug));
+
 export function getArea(slug: string) {
+  return areaCatalog.find((area) => area.slug === slug);
+}
+
+export function getPublicArea(slug: string) {
   return areas.find((area) => area.slug === slug);
 }
 

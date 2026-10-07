@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { validateTramiteForm, type TramiteFormField } from "../lib/tramite-form";
 import * as reception from "../lib/tramite-reception-core";
+import { areas, getPublicArea } from "../content/areas";
 
 const fields: TramiteFormField[] = [
   { id: "1", name: "nombre", label: "Nombre", type: "text", required: true },
@@ -56,6 +57,15 @@ test("recipient eligibility uses only published form configuration and known are
     { published: false }, { archived_at: "2026-09-28" },
   ]) assert.equal(reception.acceptsSubmissions({ ...config, ...change }), false);
   assert.equal(reception.resolveSubmissionArea("general"), "atencion-sede");
+});
+
+test("removing public directory entries preserves routing for existing forms", () => {
+  for (const slug of ["innovacion-publica", "proyectos-especiales", "coprodeso", "atencion-sede"]) {
+    assert.equal(areas.some((area) => area.slug === slug), false);
+    assert.equal(getPublicArea(slug), undefined);
+    assert.equal(reception.resolveSubmissionArea(slug), slug);
+    assert.equal(reception.acceptsSubmissions({ ...config, area_slug: slug }), true);
+  }
 });
 
 test("an attempt is bound to the submitting client and exact submitted answers", () => {
@@ -186,5 +196,18 @@ test("automatic booking accepts only reservation kinds and handles full or dupli
     assert.equal(result.ok,false);
     assert.equal(result.unavailableDate, status === "full" ? true : undefined);
     assert.ok(result.errors.form);
+  }
+});
+
+test("registration reports full, closed, scheduled and duplicate outcomes without confirming a receipt", async () => {
+  assert.equal(reception.acceptsSubmissions({ ...config, kind: "inscripcion" }), true);
+  for (const status of ["registration_full", "registration_closed", "registration_not_open", "already_registered"] as const) {
+    const result = await reception.receiveSubmission(form(), "test", "x".repeat(32), {
+      readAttempt: async () => null, readConfig: async () => ({ ...config, kind: "inscripcion" }),
+      persist: async () => ({ status, receipt_id: null }),
+    });
+    assert.equal(result.ok, false);
+    assert.equal(result.receiptId, undefined);
+    assert.ok(status === "already_registered" ? result.errors.dni : result.errors.form);
   }
 });

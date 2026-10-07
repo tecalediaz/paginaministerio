@@ -1,8 +1,9 @@
 import "server-only";
+import { registrationAvailability } from "./registration-availability";
 import { bookingAvailability } from "./booking-availability";
 import { neon } from "@neondatabase/serverless";
 import { unstable_noStore as noStore } from "next/cache";
-import { areas, getArea } from "@/content/areas";
+import { getArea } from "@/content/areas";
 import { needs, type NeedId } from "@/content/needs";
 import { parseTramiteFormFields } from "@/lib/tramite-form";
 import {
@@ -19,7 +20,7 @@ function isNeedId(value: string): value is NeedId {
 }
 
 function isAreaSlug(value: string) {
-  return areas.some((item) => item.slug === value);
+  return getArea(value) !== undefined;
 }
 
 function resolveAreaSlug(value: string) {
@@ -47,6 +48,7 @@ function isTramiteRow(row: Record<string, unknown>): row is {
   form_fields: unknown;
   type_config: unknown;
   booking_counts: Record<string, number> | null;
+  registration_count: number;
   accepts_submissions: boolean;
 } {
   return (
@@ -73,12 +75,13 @@ function mapRow(row: {
   form_fields: unknown;
   type_config: unknown;
   booking_counts: Record<string, number> | null;
+  registration_count: number;
   accepts_submissions: boolean;
 }): Tramite {
   const areaSlug = resolveAreaSlug(row.area_slug);
   const need = resolveNeed(row.need, areaSlug);
   const imageUrl = row.image_url?.trim() ?? "";
-  const kind = ["turnos", "documentos", "pagos"].includes(row.kind ?? "") ? row.kind as Tramite["kind"] : "form";
+  const kind = ["inscripcion", "turnos", "documentos", "pagos"].includes(row.kind ?? "") ? row.kind as Tramite["kind"] : "form";
   const formFields = kind === "pagos" ? [] : parseTramiteFormFields(row.form_fields);
   let fullBookingDates: { id: string; label: string }[] = [];
   if (["turnos"].includes(kind)) {
@@ -88,7 +91,10 @@ function mapRow(row: {
     fullBookingDates = availability.fullDates;
     if (reservation) reservation.options = availability.options;
   }
+  const registration = kind === "inscripcion" ? registrationAvailability((row.type_config as { registration?: unknown } | null)?.registration, row.registration_count) : undefined;
   return {
+    activitySchedule: readActivitySchedule(row.type_config),
+    registration,
     slug: row.slug,
     title: row.title,
     need,
@@ -105,7 +111,7 @@ function mapRow(row: {
     formFields,
     fullBookingDates,
     documents: documentLinks(row.type_config),
-    acceptsSubmissions: ["form", "turnos"].includes(row.kind ?? "") && row.accepts_submissions === true &&
+    acceptsSubmissions: ["form", "inscripcion", "turnos"].includes(row.kind ?? "") && (!registration || registration.status === "open") && row.accepts_submissions === true &&
       formFields.length > 0 && (!["turnos"].includes(kind) || Boolean(formFields.find(f => f.name === "reserva")?.options?.length)) && (isAreaSlug(row.area_slug) || row.area_slug === "general"),
   };
 }
@@ -126,6 +132,7 @@ async function queryPublished(
   const result = await sql`
     SELECT slug, title, need, area_slug, kind, image_url, image_alt,
       summary, who, how, requirements, notes, form_fields, type_config,
+      (SELECT count(*)::int FROM site_tramite_submissions WHERE tramite_id = site_tramites.id) AS registration_count,
       (SELECT jsonb_object_agg(counts.slot, counts.total) FROM
         (SELECT answers->>'reserva' AS slot, count(*)::int AS total FROM site_tramite_submissions WHERE tramite_id = site_tramites.id AND answers->>'reserva' IS NOT NULL GROUP BY answers->>'reserva') counts) AS booking_counts,
       (notification_email IS NOT NULL AND length(btrim(notification_email)) <= 254 AND
@@ -175,6 +182,7 @@ export async function getPublishedTramite(
     const result = await sql`
       SELECT slug, title, need, area_slug, kind, image_url, image_alt,
         summary, who, how, requirements, notes, form_fields, type_config,
+      (SELECT count(*)::int FROM site_tramite_submissions WHERE tramite_id = site_tramites.id) AS registration_count,
       (SELECT jsonb_object_agg(counts.slot, counts.total) FROM
         (SELECT answers->>'reserva' AS slot, count(*)::int AS total FROM site_tramite_submissions WHERE tramite_id = site_tramites.id AND answers->>'reserva' IS NOT NULL GROUP BY answers->>'reserva') counts) AS booking_counts,
         (notification_email IS NOT NULL AND length(btrim(notification_email)) <= 254 AND
@@ -196,5 +204,16 @@ function documentLinks(raw: unknown): NonNullable<Tramite["documents"]> {
   return raw.documents.filter((d): d is {title:string;url:string} => {
     if (!d || typeof d.title !== "string" || typeof d.url !== "string") return false;
     try { const url = new URL(d.url); return url.protocol === "https:" || (url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname) && /^\/api\/public\/tramites\/[0-9a-f-]+\/documents\/[0-9a-f-]+$/.test(url.pathname)); } catch { return false; }
+  });
+}
+
+function readActivitySchedule(raw: unknown): NonNullable<Tramite["activitySchedule"]> {
+  if (!raw || typeof raw !== "object") return [];
+  const rows = (raw as { activitySchedule?: unknown }).activitySchedule;
+  if (!Array.isArray(rows)) return [];
+  return rows.slice(0, 14).flatMap(row => {
+    if (!row || !Array.isArray(row.days) || !row.days.length || row.days.some((day: unknown) => typeof day !== "number" || !Number.isInteger(day) || day < 0 || day > 6) ||
+      typeof row.start !== "string" || typeof row.end !== "string" || !/^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(row.start) || !/^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(row.end) || row.end <= row.start) return [];
+    return [{days: [...new Set<number>(row.days)].sort(),start:row.start,end:row.end}];
   });
 }

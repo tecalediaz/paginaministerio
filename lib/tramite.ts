@@ -12,7 +12,7 @@ export type TramiteImage = {
   replaceWith?: string;
 };
 
-export type TramiteKind = "form" | "pagos" | "turnos" | "documentos";
+export type TramiteKind = "form" | "inscripcion" | "pagos" | "turnos" | "documentos";
 
 export type Tramite = {
   slug: string;
@@ -27,6 +27,8 @@ export type Tramite = {
   requirements: string;
   notes: string;
   formFields: TramiteFormField[];
+  activitySchedule?: { days: number[]; start: string; end: string }[];
+  registration?: import("./registration-availability").RegistrationAvailability;
   acceptsSubmissions: boolean;
   fullBookingDates?: { id: string; label: string }[];
   documents?: { title: string; url: string; mimeType?: string; size?: number }[];

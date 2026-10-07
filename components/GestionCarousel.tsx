@@ -275,7 +275,7 @@ export function GestionCarousel({ items }: { items: Gestion[] }) {
         <div className="gestion-media">
           <div
             id={viewportId}
-            className="gestion-viewport relative min-h-[14rem] overflow-hidden rounded-xl aspect-[4/3] sm:aspect-[16/10]"
+            className="gestion-viewport relative w-full min-h-[14rem] overflow-hidden rounded-xl aspect-[4/3] sm:aspect-[16/10]"
           >
             {items.map((item, index) => {
               const hidden = index !== active;

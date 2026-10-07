@@ -5,6 +5,9 @@ export const TRAMITE_FORM_FIELD_TYPES = [
   "dni",
   "select",
   "textarea",
+  "number",
+  "radio",
+  "checkbox",
 ] as const;
 
 export type TramiteFormFieldType = (typeof TRAMITE_FORM_FIELD_TYPES)[number];
@@ -119,7 +122,7 @@ export function parseTramiteFormFields(raw: unknown): TramiteFormField[] {
     if (typeof row.placeholder === "string" && row.placeholder.trim()) {
       field.placeholder = row.placeholder.trim().slice(0, 160);
     }
-    if (row.type === "select" && Array.isArray(row.options)) {
+    if (["select", "radio", "checkbox"].includes(row.type) && Array.isArray(row.options)) {
       const options = row.options
         .filter(
           (option): option is { value: string; label: string } =>
@@ -169,6 +172,19 @@ export function validateTramiteForm(
   const answers: Record<string, string> = {};
 
   for (const field of fields) {
+    if (field.type === "checkbox") {
+      const values = formData.getAll(field.name);
+      const options = field.options ?? [];
+      const allowed = new Set(options.map(option => option.value));
+      if (values.some(value => typeof value !== "string" || !allowed.has(value)) || new Set(values).size !== values.length) {
+        errors[field.name] = "Elegí únicamente las opciones disponibles, sin repetirlas.";
+      } else if (field.required && !values.length) {
+        errors[field.name] = "Elegí al menos una opción.";
+      } else {
+        answers[field.name] = JSON.stringify(options.filter(option => values.includes(option.value)).map(option => option.value));
+      }
+      continue;
+    }
     const raw = read(formData, field.name);
     if (formData.getAll(field.name).length > 1 || formData.get(field.name) instanceof Blob) {
       errors[field.name] = "Ingresá un único valor de texto.";
@@ -199,7 +215,9 @@ export function validateTramiteForm(
       continue;
     }
 
-    if (isNombreField(field)) {
+    if (field.type === "number" && !/^[0-9]+$/.test(raw)) {
+      errors[field.name] = "Ingresá solo números, sin signos ni decimales.";
+    } else if (isNombreField(field)) {
       const palabras = raw.split(/\s+/).filter(Boolean);
       if (palabras.length > NOMBRE_MAX_PALABRAS) {
         errors[field.name] = `Máximo ${NOMBRE_MAX_PALABRAS} palabras.`;
@@ -211,7 +229,7 @@ export function validateTramiteForm(
       if (digits(raw).length < 8) {
         errors[field.name] = "Ingresá un teléfono de contacto.";
       }
-    } else if (field.type === "select") {
+    } else if (["select", "radio"].includes(field.type)) {
       const allowed = new Set((field.options ?? []).map((option) => option.value));
       if (!allowed.has(raw)) {
         errors[field.name] = "Elegí una opción.";

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AreaLanding } from "@/components/AreaLanding";
-import { areas, getArea } from "@/content/areas";
+import { areas, getPublicArea } from "@/content/areas";
 import { listPublishedGestionesByArea } from "@/lib/gestiones";
 import { listPublishedTramitesByArea } from "@/lib/tramites";
 
@@ -17,7 +17,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const area = getArea(slug);
+  const area = getPublicArea(slug);
   if (!area) {
     return { title: "Área no encontrada" };
   }
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function AreaPage({ params }: Props) {
   const { slug } = await params;
-  const area = getArea(slug);
+  const area = getPublicArea(slug);
   if (!area) notFound();
 
   const [gestiones, tramites] = await Promise.all([

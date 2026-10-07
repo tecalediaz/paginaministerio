@@ -307,6 +307,7 @@ body {
 }
 
 .area-banner {
+  width: 100%;
   min-height: 22rem;
   aspect-ratio: 4 / 3;
 }
@@ -426,11 +427,32 @@ body {
 }
 
 .slogan-strip__item {
+  flex: 1 0 auto;
   white-space: nowrap;
   background-color: var(--bg-deep);
   color: #fff;
   scroll-snap-align: start;
   scroll-snap-stop: normal;
+  overflow: hidden;
+  transition:
+    flex-grow 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.65s ease,
+    color 0.65s ease;
+}
+
+.slogan-strip__label {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.85;
+  transform: translateY(1px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+
+.slogan-strip__item[data-active="true"] .slogan-strip__label {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .need-rail-wrap {
@@ -656,61 +678,40 @@ body {
   }
 }
 
-.slogan-strip__item[data-tone="red"] {
-  background-color: var(--brand-red);
-}
-
 @media (min-width: 1024px) {
   .slogan-strip {
     overflow: hidden;
   }
 
   .slogan-strip__item {
-    min-width: 0;
+    min-width: max-content;
     overflow: hidden;
-    flex-grow: 1;
+    flex-grow: 0.85;
     flex-shrink: 1;
     flex-basis: 0;
-    transition:
-      flex-grow 0.35s ease,
-      background-color 0.35s ease,
-      color 0.35s ease;
   }
+
+  .slogan-strip__item[data-active="true"] {
+    flex-grow: 1.6;
+  }
+
 }
 
-@media (min-width: 1024px) and (hover: hover) {
-  .slogan-strip:hover .slogan-strip__item,
-  .slogan-strip:focus-within .slogan-strip__item {
-    flex-grow: 0.7;
-    background-color: var(--bg-deep);
-    color: #fff;
-  }
+.slogan-strip__item[data-tone="green"][data-active="true"] {
+  background-color: var(--accent);
+}
 
-  .slogan-strip .slogan-strip__item:hover,
-  .slogan-strip .slogan-strip__item:focus-visible {
-    flex-grow: 2.2;
-  }
+.slogan-strip__item[data-tone="blue"][data-active="true"] {
+  background-color: var(--brand-blue);
+}
 
-  .slogan-strip .slogan-strip__item[data-tone="green"]:hover,
-  .slogan-strip .slogan-strip__item[data-tone="green"]:focus-visible {
-    background-color: var(--accent);
-  }
+.slogan-strip__item[data-tone="red"][data-active="true"] {
+  background-color: var(--brand-red);
+}
 
-  .slogan-strip .slogan-strip__item[data-tone="blue"]:hover,
-  .slogan-strip .slogan-strip__item[data-tone="blue"]:focus-visible {
-    background-color: var(--brand-blue);
-  }
-
-  .slogan-strip .slogan-strip__item[data-tone="red"]:hover,
-  .slogan-strip .slogan-strip__item[data-tone="red"]:focus-visible {
-    background-color: var(--brand-red);
-  }
-
-  .slogan-strip .slogan-strip__item[data-tone="yellow"]:hover,
-  .slogan-strip .slogan-strip__item[data-tone="yellow"]:focus-visible {
-    background-color: var(--brand-yellow);
-    color: var(--fg);
-  }
+.slogan-strip__item[data-tone="yellow"][data-active="true"] {
+  background-color: var(--brand-yellow);
+  color: var(--fg);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -723,7 +724,8 @@ body {
     transition: none;
   }
 
-  .slogan-strip__item {
+  .slogan-strip__item,
+  .slogan-strip__label {
     transition: none;
   }
 }

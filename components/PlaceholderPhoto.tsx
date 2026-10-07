@@ -28,6 +28,7 @@ export function PlaceholderPhoto({
         sizes={sizes}
         priority={priority}
         className="object-cover object-center"
+        style={photo.objectPosition ? { objectPosition: photo.objectPosition } : undefined}
       />
       <div
         aria-hidden
@@ -39,7 +40,7 @@ export function PlaceholderPhoto({
               : "absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/5"
         }
       />
-      <figcaption
+      {photo.replaceWith ? <figcaption
         className={
           overlay
             ? "absolute inset-x-0 top-0 p-2.5 text-fg-on-dark sm:p-3"
@@ -64,7 +65,7 @@ export function PlaceholderPhoto({
             {photo.replaceWith}
           </p>
         )}
-      </figcaption>
+      </figcaption> : null}
       {overlay ? (
         <div
           className={

@@ -4,7 +4,8 @@ import type { NeedId } from "@/content/needs";
 export type HomePhoto = {
   src: string;
   alt: string;
-  replaceWith: string;
+  replaceWith?: string;
+  objectPosition?: string;
 };
 
 export const ministerPhoto: HomePhoto = {
@@ -16,59 +17,94 @@ export const ministerPhoto: HomePhoto = {
 
 export const needPhotos: Record<NeedId, HomePhoto> = {
   educacion: {
-    src: "/placeholders/trabajo.jpg",
-    alt: "Imagen provisoria de capacitación para la tarjeta de Educación.",
-    replaceWith:
-      "Actividad de educación o fortalecimiento escolar y social del ministerio.",
+    src: "/home/necesidades/educacion.webp",
+    alt: "Niñas y niños dibujando con lápices de colores.",
   },
   alimentacion: {
-    src: "/placeholders/alimentacion.jpg",
-    alt: "Imagen provisoria de asistencia alimentaria.",
-    replaceWith:
-      "Gestión alimentaria: comedor, entrega o dispositivo de Seguridad Alimentaria en La Rioja.",
+    src: "/home/necesidades/alimentacion.webp",
+    alt: "Niñas compartiendo una merienda en una mesa.",
   },
   infancias: {
-    src: "/placeholders/infancias.jpg",
-    alt: "Imagen provisoria de infancias.",
-    replaceWith:
-      "Actividad de niñez, adolescencia o primera infancia del ministerio (no stock genérico).",
+    src: "/home/necesidades/infancias.webp",
+    alt: "Un niño participando en una actividad de pintura.",
   },
   discapacidad: {
-    src: "/placeholders/discapacidad.jpg",
-    alt: "Imagen provisoria de inclusión.",
-    replaceWith:
-      "Gestión del Consejo Provincial para Personas con Discapacidad: atención, deporte adaptado o inclusión.",
+    src: "/home/necesidades/discapacidad.webp",
+    alt: "Dos niños jugando al básquet, uno de ellos en silla de ruedas.",
+    objectPosition: "75% center",
   },
   deporte: {
-    src: "/placeholders/deporte.jpg",
-    alt: "Imagen provisoria de deporte.",
-    replaceWith:
-      "Actividad de Deportes, Recreación e Inclusión en la provincia (colonia, entrenamiento o evento).",
+    src: "/home/necesidades/deporte.webp",
+    alt: "Dos jóvenes disputando una pelota en un partido de fútbol.",
   },
   trabajo: {
-    src: "/placeholders/trabajo.jpg",
-    alt: "Imagen provisoria de trabajo.",
-    replaceWith:
-      "Economía popular o proyecto productivo del área: taller, unidad productiva o capacitación.",
+    src: "/home/necesidades/trabajo.webp",
+    alt: "Un trabajador preparando productos en un puesto de feria.",
   },
   territorio: {
-    src: "/placeholders/territorio.jpg",
-    alt: "Imagen provisoria de territorio.",
-    replaceWith:
-      "Desarrollo territorial: trabajo en el interior, consejo local o hábitat / techo.",
+    src: "/home/necesidades/territorio.webp",
+    alt: "El ministro Alfredo Menem conversando con vecinas en una feria.",
   },
 };
 
 export const sedePhoto: HomePhoto = {
-  src: "/placeholders/sede.jpg",
-  alt: "Imagen provisoria de la sede.",
-  replaceWith:
-    "Fachada de la sede central, Av. Alem y Av. Los Caudillos, Ciudad de La Rioja.",
+  src: "/home/ministerio.webp",
+  alt: "Fachada de la sede central del Ministerio de Desarrollo, Igualdad e Integración Social en la Ciudad de La Rioja.",
+};
+
+export const areaPhotos: Record<string, HomePhoto> = {
+  deportes: {
+    src: "/areas/deportes.webp",
+    alt: "Una instructora acompañando a un niño con casco y protección durante una actividad deportiva.",
+    objectPosition: "70% center",
+  },
+  discapacidad: {
+    src: "/areas/discapacidad.webp",
+    alt: "Dos niños jugando al básquet, uno de ellos en silla de ruedas.",
+    objectPosition: "70% center",
+  },
+  "economia-popular": {
+    src: "/areas/economia-popular.webp",
+    alt: "Un trabajador atendiendo su puesto de productos en una feria.",
+    objectPosition: "73% center",
+  },
+  "inclusion-desarrollo": {
+    src: "/areas/inclusion-desarrollo.webp",
+    alt: "Un niño participando en una actividad de pintura.",
+    objectPosition: "38% center",
+  },
+  "desarrollo-territorial": {
+    src: "/areas/desarrollo-territorial.webp",
+    alt: "El ministro Alfredo Menem conversando con vecinas en una feria.",
+    objectPosition: "40% center",
+  },
+  ninez: {
+    src: "/areas/ninez.webp",
+    alt: "Una niña pintando en un atril durante una actividad acompañada por personas adultas.",
+    objectPosition: "25% center",
+  },
+  "seguridad-alimentaria": {
+    src: "/areas/seguridad-alimentaria.webp",
+    alt: "Niñas y niños compartiendo una merienda en una mesa.",
+    objectPosition: "55% center",
+  },
+  "primera-infancia": {
+    src: "/areas/primera-infancia.webp",
+    alt: "Un niño sonriendo durante una actividad al aire libre.",
+    objectPosition: "18% center",
+  },
+  fes: {
+    src: "/areas/fes.webp",
+    alt: "Una niña escribiendo en su cuaderno junto a sus compañeros.",
+    objectPosition: "65% center",
+  },
 };
 
 export function photoForArea(area: Area): HomePhoto {
   if (area.slug === "atencion-sede") return sedePhoto;
+  if (areaPhotos[area.slug]) return areaPhotos[area.slug];
   const photo = needPhotos[area.need];
+  if (!photo.replaceWith) return photo;
   return {
     ...photo,
     replaceWith: `Foto oficial de ${area.name}: gestión en territorio o sede (no stock genérico).`,

@@ -144,8 +144,8 @@ export function AreaLanding({
           />
         </section>
 
-        <div className="mt-8 grid gap-8 lg:mt-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(17rem,0.8fr)] lg:items-start lg:gap-12">
-          <section aria-label="Información del área">
+        <div className="mt-8 grid gap-x-8 gap-y-10 sm:gap-y-14 lg:mt-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(17rem,0.8fr)] lg:items-start lg:gap-x-12">
+          <section className="lg:col-start-1 lg:row-start-1" aria-label="Información del área">
             <p className="kicker">El área</p>
             <p className="area-lead mt-4">{area.summary}</p>
             <div className="mt-8 border-t border-line pt-8">
@@ -154,7 +154,70 @@ export function AreaLanding({
             </div>
           </section>
 
-          <aside className="area-consult h-fit bg-white px-5 py-6 sm:px-6 sm:py-7">
+          {gestiones.length > 0 ? (
+            <section className="lg:col-span-2" aria-label="Destacados del área">
+              <p className="kicker">Destacados</p>
+              <ul className="mt-4 grid gap-4 sm:mt-5 sm:grid-cols-2">
+                {gestiones.map((item) => (
+                  <li key={item.id}>
+                    <DestacadoCard item={item} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          <section className="lg:col-span-2" aria-labelledby="area-tramites">
+            <p className="kicker">Servicios</p>
+            <h2
+              id="area-tramites"
+              className="mt-2 text-2xl font-black tracking-tight text-brand-navy"
+            >
+              Programas y trámites
+            </h2>
+            {tramites.length > 0 ? (
+              <ul className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {tramites.map((tramite) => (
+                  <li key={tramite.slug} className="min-w-0">
+                    <TramitePosterCard tramite={tramite} />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <>
+                <p className="mt-4 max-w-2xl text-fg-muted">
+                  Todavía no hay trámites disponibles. Consultá en{" "}
+                  <Link className="font-bold text-accent-warm" href="/contacto">
+                    sede
+                  </Link>{" "}
+                  o por teléfono.
+                </p>
+                <Link
+                  href="/tramites"
+                  className="mt-6 inline-flex min-h-11 items-center justify-center rounded-[6px] bg-accent px-5 font-bold text-white hover:bg-accent-warm"
+                >
+                  Ir a Programas y trámites
+                </Link>
+              </>
+            )}
+          </section>
+
+          {social.length > 0 ? (
+            <section className="lg:col-span-2" aria-labelledby="area-redes">
+              <p className="kicker">Redes</p>
+              <h2
+                id="area-redes"
+                className="mt-2 text-2xl font-black tracking-tight text-brand-navy"
+              >
+                Redes del área
+              </h2>
+              <div className="mt-4">
+                <SocialLinks items={social} label={`Redes de ${area.name}`} />
+              </div>
+            </section>
+          ) : null}
+
+          <aside className="area-consult h-fit lg:col-start-2 lg:row-start-1 bg-white px-5 py-6 sm:px-6 sm:py-7">
             <p className="kicker">Consultar</p>
             <p className="mt-3 leading-relaxed">{area.access}</p>
             <p className="mt-5 font-bold text-brand-navy">{site.contact.address}</p>
@@ -188,69 +251,6 @@ export function AreaLanding({
             ) : null}
           </aside>
         </div>
-
-        {gestiones.length > 0 ? (
-          <section className="mt-10 sm:mt-14" aria-label="Destacados del área">
-            <p className="kicker">Destacados</p>
-            <ul className="mt-4 grid gap-4 sm:mt-5 sm:grid-cols-2">
-              {gestiones.map((item) => (
-                <li key={item.id}>
-                  <DestacadoCard item={item} />
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-
-        <section className="mt-10 sm:mt-14" aria-labelledby="area-tramites">
-          <p className="kicker">Servicios</p>
-          <h2
-            id="area-tramites"
-            className="mt-2 text-2xl font-black tracking-tight text-brand-navy"
-          >
-            Programas y trámites
-          </h2>
-          {tramites.length > 0 ? (
-            <ul className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {tramites.map((tramite) => (
-                <li key={tramite.slug} className="min-w-0">
-                  <TramitePosterCard tramite={tramite} />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <>
-              <p className="mt-4 max-w-2xl text-fg-muted">
-                Todavía no hay trámites disponibles. Consultá en{" "}
-                <Link className="font-bold text-accent-warm" href="/contacto">
-                  sede
-                </Link>{" "}
-                o por teléfono.
-              </p>
-              <Link
-                href="/tramites"
-                className="mt-6 inline-flex min-h-11 items-center justify-center rounded-[6px] bg-accent px-5 font-bold text-white hover:bg-accent-warm"
-              >
-                Ir a Programas y trámites
-              </Link>
-            </>
-          )}
-        </section>
-
-        {social.length > 0 ? (
-          <section className="mt-10 sm:mt-14" aria-labelledby="area-redes">
-            <p className="kicker">Redes</p>
-            <h2
-              id="area-redes"
-              className="mt-2 text-2xl font-black tracking-tight text-brand-navy"
-            >
-              Redes del área
-            </h2>
-            <div className="mt-4">
-              <SocialLinks items={social} label={`Redes de ${area.name}`} />
-            </div>
-          </section>
-        ) : null}
       </div>
     </div>
   );
