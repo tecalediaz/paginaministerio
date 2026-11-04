@@ -1,7 +1,7 @@
 import "server-only";
 import { registrationAvailability } from "./registration-availability";
 import { bookingAvailability } from "./booking-availability";
-import { neon } from "@neondatabase/serverless";
+import { neon } from "@/lib/postgres";
 import { unstable_noStore as noStore } from "next/cache";
 import { getArea } from "@/content/areas";
 import { needs, type NeedId } from "@/content/needs";
@@ -155,7 +155,7 @@ async function loadPublished(areaSlug?: string): Promise<Tramite[]> {
   try {
     return await queryPublished(url, areaSlug);
   } catch (error) {
-    console.error("No se pudieron leer los trámites de Neon", error);
+    console.error("No se pudieron leer los trámites", error);
     return [];
   }
 }
@@ -194,7 +194,7 @@ export async function getPublishedTramite(
     const row = rowsOf(result).find(isTramiteRow);
     return row ? mapRow(row) : null;
   } catch (error) {
-    console.error("No se pudieron leer los trámites de Neon", error);
+    console.error("No se pudieron leer los trámites", error);
     return null;
   }
 }

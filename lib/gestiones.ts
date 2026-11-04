@@ -1,4 +1,4 @@
-import { neon } from "@neondatabase/serverless";
+import { neon } from "@/lib/postgres";
 
 export type Gestion = {
   id: string;
@@ -117,7 +117,7 @@ export async function listPublishedGestiones(): Promise<Gestion[]> {
     }
     return items;
   } catch (error) {
-    console.error("No se pudieron leer las gestiones de Neon", error);
+    console.error("No se pudieron leer las gestiones", error);
     return process.env.NODE_ENV === "development" ? DEV_FIXTURES : [];
   }
 }

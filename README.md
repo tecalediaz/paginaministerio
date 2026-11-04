@@ -1,6 +1,6 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-La recepción de solicitudes usa Neon y la cola privada de AlMinisterio. Ver [configuración, contrato y verificación de recepción pública](docs/recepcion-publica.md) antes de habilitar formularios.
+La recepción de solicitudes usa la misma base Postgres que AlMinisterio y su cola privada de avisos. Ver [configuración, contrato y verificación de recepción pública](docs/recepcion-publica.md) antes de habilitar formularios.
 
 ## Getting Started
 

@@ -1,6 +1,6 @@
 import "server-only";
 import { isIP } from "node:net";
-import { neon } from "@neondatabase/serverless";
+import { neon } from "@/lib/postgres";
 import {
   receiveSubmission, type SubmissionConfig, type SubmissionPersistenceResult,
 } from "./tramite-reception-core";
