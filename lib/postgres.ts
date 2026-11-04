@@ -5,13 +5,10 @@ const pools = new Map<string, Pool>();
 export function getPool(connectionString: string) {
   const existing = pools.get(connectionString);
   if (existing) return existing;
-  const url = new URL(connectionString);
-  const local = url.hostname === "localhost" || url.hostname === "127.0.0.1";
-  url.searchParams.delete("sslmode");
+  // `pg` aplica sslmode. No lo borramos ni desactivamos la verificación del certificado.
   const pool = new Pool({
-    connectionString: url.toString(),
+    connectionString,
     max: 1,
-    ssl: local ? undefined : { rejectUnauthorized: false },
   });
   pools.set(connectionString, pool);
   return pool;

@@ -14,3 +14,14 @@ test("tagged queries use pg placeholders and do not connect until awaited", asyn
   assert.deepEqual(query.values, ["consulta", true]);
   await getPool(url).end();
 });
+
+test("production sslmode is kept and certificate checks are not disabled", async () => {
+  const remote = "postgres://pagina:pagina@db.example.com:5432/postgres?sslmode=verify-full";
+  const pool = getPool(remote);
+  const ssl = pool.options.ssl;
+  assert.match(String(pool.options.connectionString), /sslmode=verify-full/);
+  if (ssl && typeof ssl === "object") {
+    assert.notEqual(ssl.rejectUnauthorized, false);
+  }
+  await pool.end();
+});
