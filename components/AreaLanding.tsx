@@ -14,6 +14,7 @@ import type { Area } from "@/content/areas";
 import { photoForArea } from "@/content/home-photos";
 import { getNeed } from "@/content/needs";
 import { site } from "@/content/site";
+import type { AreaSede } from "@/lib/area-sede";
 import type { Tramite } from "@/lib/tramite";
 import type { Gestion } from "@/lib/gestiones";
 
@@ -103,10 +104,12 @@ export function AreaLanding({
   area,
   gestiones,
   tramites,
+  sede,
 }: {
   area: Area;
   gestiones: Gestion[];
   tramites: Tramite[];
+  sede: AreaSede;
 }) {
   const photo = photoForArea(area);
   const need = getNeed(area.need);
@@ -220,22 +223,38 @@ export function AreaLanding({
           <aside className="area-consult h-fit lg:col-start-2 lg:row-start-1 bg-white px-5 py-6 sm:px-6 sm:py-7">
             <p className="kicker">Consultar</p>
             <p className="mt-3 leading-relaxed">{area.access}</p>
-            <p className="mt-5 font-bold text-brand-navy">{site.contact.address}</p>
-            <p className="text-fg-muted">{site.contact.city}</p>
-            <div className="mt-4">
-              <p className="text-xs font-extrabold tracking-[0.16em] text-fg-muted uppercase">
-                Horario
-              </p>
-              <SedeHours hours={site.contact.hours} />
-            </div>
-            <div className="mt-6 grid gap-3">
-              <Link
-                className="inline-flex min-h-12 items-center justify-center rounded-[6px] bg-accent font-bold text-white hover:bg-accent-warm"
-                href="/contacto"
-              >
-                Ver sede
-              </Link>
-            </div>
+            {sede.address ? (
+              <p className="mt-5 font-bold text-brand-navy">{sede.address}</p>
+            ) : null}
+            <p className={sede.address ? "text-fg-muted" : "mt-5 text-fg-muted"}>{site.contact.city}</p>
+            {sede.hours ? (
+              <div className="mt-4">
+                <p className="text-xs font-extrabold tracking-[0.16em] text-fg-muted uppercase">
+                  Horario
+                </p>
+                <SedeHours hours={sede.hours} />
+              </div>
+            ) : null}
+            {sede.mapEmbed ? (
+              <div className="mt-6">
+                <iframe
+                  title={`Mapa de la sede de ${area.name}`}
+                  src={sede.mapEmbed}
+                  loading="lazy"
+                  className="h-48 w-full border border-line"
+                />
+                {sede.mapOpen ? (
+                  <a
+                    className="mt-3 inline-flex min-h-11 items-center text-sm font-bold"
+                    href={sede.mapOpen}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Abrir mapa
+                  </a>
+                ) : null}
+              </div>
+            ) : null}
             {consultSocial.length > 0 ? (
               <div className="mt-6">
                 <p className="text-xs font-extrabold tracking-[0.16em] text-fg-muted uppercase">

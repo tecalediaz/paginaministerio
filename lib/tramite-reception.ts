@@ -1,6 +1,6 @@
 import "server-only";
 import { isIP } from "node:net";
-import { neon } from "@neondatabase/serverless";
+import { sqlFor } from "@/lib/sql";
 import {
   receiveSubmission, type SubmissionConfig, type SubmissionPersistenceResult,
 } from "./tramite-reception-core";
@@ -21,7 +21,7 @@ export async function saveTramiteSubmission(
   if (!url || !secret || secret.length < 32) return {
     ok: false, errors: { form: "El envío de solicitudes no está disponible en este momento. Podés consultar por teléfono, WhatsApp o en sede." },
   };
-  const sql = neon(url);
+  const sql = sqlFor(url);
   return receiveSubmission(formData, submissionClient(headers), secret, {
     async readAttempt(key) {
       const rows = await sql`SELECT id, fields_snapshot, request_fingerprint FROM site_tramite_submissions WHERE idempotency_key = ${key}::uuid LIMIT 1`;
@@ -30,7 +30,7 @@ export async function saveTramiteSubmission(
     async readConfig(slug) {
       const result = await sql`
         SELECT id, slug, title, kind, published, archived_at, area_slug, notification_email, form_fields
-        FROM site_tramites WHERE slug = ${slug} AND published = true AND archived_at IS NULL LIMIT 1
+        FROM site_tramites WHERE slug = ${slug} AND published = true AND archived_at IS NULL AND deleted_at IS NULL LIMIT 1
       `;
       return (result[0] as SubmissionConfig | undefined) ?? null;
     },

@@ -1,4 +1,5 @@
-import { neon } from "@neondatabase/serverless";
+import "server-only";
+import { sqlFor, type Sql } from "@/lib/sql";
 
 export type Gestion = {
   id: string;
@@ -79,10 +80,7 @@ function rowsOf(result: unknown): Record<string, unknown>[] {
   );
 }
 
-async function queryPublishedGestiones(
-  sql: ReturnType<typeof neon>,
-  areaSlug?: string,
-) {
+async function queryPublishedGestiones(sql: Sql, areaSlug?: string) {
   if (areaSlug) {
     const result = await sql`
       SELECT id, title, summary, image_url, image_alt, href
@@ -111,13 +109,13 @@ export async function listPublishedGestiones(): Promise<Gestion[]> {
   }
 
   try {
-    const items = await queryPublishedGestiones(neon(url));
+    const items = await queryPublishedGestiones(sqlFor(url));
     if (items.length === 0 && process.env.NODE_ENV === "development") {
       return DEV_FIXTURES;
     }
     return items;
   } catch (error) {
-    console.error("No se pudieron leer las gestiones de Neon", error);
+    console.error("No se pudieron leer las gestiones", error);
     return process.env.NODE_ENV === "development" ? DEV_FIXTURES : [];
   }
 }
@@ -129,7 +127,7 @@ export async function listPublishedGestionesByArea(
   if (!url) return [];
 
   try {
-    return await queryPublishedGestiones(neon(url), areaSlug);
+    return await queryPublishedGestiones(sqlFor(url), areaSlug);
   } catch (error) {
     console.error("No se pudieron leer las gestiones del área", error);
     return [];

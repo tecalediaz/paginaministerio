@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { ServiceSheet } from "@/components/ServiceSheet";
-import { listPublishedPagos } from "@/lib/pagos";
+import { listPublishedPagos } from "@/lib/pagos-store";
 import { getPublishedTramite } from "@/lib/tramites";
 
 type Props = {

@@ -1,7 +1,7 @@
 import "server-only";
 import { registrationAvailability } from "./registration-availability";
 import { bookingAvailability } from "./booking-availability";
-import { neon } from "@neondatabase/serverless";
+import { sqlFor } from "@/lib/sql";
 import { unstable_noStore as noStore } from "next/cache";
 import { getArea } from "@/content/areas";
 import { needs, type NeedId } from "@/content/needs";
@@ -128,7 +128,7 @@ async function queryPublished(
   url: string,
   areaSlug?: string,
 ): Promise<Tramite[]> {
-  const sql = neon(url);
+  const sql = sqlFor(url);
   const result = await sql`
     SELECT slug, title, need, area_slug, kind, image_url, image_alt,
       summary, who, how, requirements, notes, form_fields, type_config,
@@ -138,7 +138,7 @@ async function queryPublished(
       (notification_email IS NOT NULL AND length(btrim(notification_email)) <= 254 AND
         btrim(notification_email) ~ '^(?![.])(?!.*[.][.])[A-Za-z0-9_''+.-]*[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9-]*[.])+[A-Za-z]{2,}$') AS accepts_submissions
     FROM site_tramites
-    WHERE published = true AND archived_at IS NULL
+    WHERE published = true AND archived_at IS NULL AND deleted_at IS NULL
     ORDER BY sort_order ASC, published_at DESC NULLS LAST, created_at DESC
   `;
 
@@ -155,7 +155,7 @@ async function loadPublished(areaSlug?: string): Promise<Tramite[]> {
   try {
     return await queryPublished(url, areaSlug);
   } catch (error) {
-    console.error("No se pudieron leer los trámites de Neon", error);
+    console.error("No se pudieron leer los trámites", error);
     return [];
   }
 }
@@ -178,7 +178,7 @@ export async function getPublishedTramite(
   if (!url) return null;
 
   try {
-    const sql = neon(url);
+    const sql = sqlFor(url);
     const result = await sql`
       SELECT slug, title, need, area_slug, kind, image_url, image_alt,
         summary, who, how, requirements, notes, form_fields, type_config,
@@ -188,13 +188,13 @@ export async function getPublishedTramite(
         (notification_email IS NOT NULL AND length(btrim(notification_email)) <= 254 AND
           btrim(notification_email) ~ '^(?![.])(?!.*[.][.])[A-Za-z0-9_''+.-]*[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9-]*[.])+[A-Za-z]{2,}$') AS accepts_submissions
       FROM site_tramites
-      WHERE published = true AND archived_at IS NULL AND slug = ${slug}
+      WHERE published = true AND archived_at IS NULL AND deleted_at IS NULL AND slug = ${slug}
       LIMIT 1
     `;
     const row = rowsOf(result).find(isTramiteRow);
     return row ? mapRow(row) : null;
   } catch (error) {
-    console.error("No se pudieron leer los trámites de Neon", error);
+    console.error("No se pudieron leer los trámites", error);
     return null;
   }
 }
