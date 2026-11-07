@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Breadcrumb } from "@/components/Breadcrumb";
+import { DestacadosCarousel } from "@/components/DestacadosCarousel";
 import { PlaceholderPhoto } from "@/components/PlaceholderPhoto";
 import { SedeHours } from "@/components/SedeHours";
 import {
@@ -29,7 +30,7 @@ function DestacadoMedia({ src, alt }: { src: string; alt: string }) {
         src={src}
         alt={alt}
         fill
-        sizes="(min-width: 640px) 50vw, 100vw"
+        sizes="(min-width: 1024px) 40rem, 100vw"
         className="object-cover object-center"
       />
     );
@@ -148,27 +149,27 @@ export function AreaLanding({
         </section>
 
         <div className="mt-8 grid gap-x-8 gap-y-10 sm:gap-y-14 lg:mt-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(17rem,0.8fr)] lg:items-start lg:gap-x-12">
-          <section className="lg:col-start-1 lg:row-start-1" aria-label="Información del área">
-            <p className="kicker">El área</p>
-            <p className="area-lead mt-4">{area.summary}</p>
-            <div className="mt-8 border-t border-line pt-8">
-              <h2 className="kicker">A quién atiende</h2>
-              <p className="mt-3 max-w-2xl text-lg leading-relaxed">{area.audience}</p>
-            </div>
-          </section>
-
-          {gestiones.length > 0 ? (
-            <section className="lg:col-span-2" aria-label="Destacados del área">
-              <p className="kicker">Destacados</p>
-              <ul className="mt-4 grid gap-4 sm:mt-5 sm:grid-cols-2">
-                {gestiones.map((item) => (
-                  <li key={item.id}>
-                    <DestacadoCard item={item} />
-                  </li>
-                ))}
-              </ul>
+          <div className="flex min-w-0 flex-col gap-10 sm:gap-14 lg:col-start-1 lg:row-start-1">
+            <section aria-label="Información del área">
+              <p className="kicker">El área</p>
+              <p className="area-lead mt-4">{area.summary}</p>
+              <div className="mt-8 border-t border-line pt-8">
+                <h2 className="kicker">A quién atiende</h2>
+                <p className="mt-3 max-w-2xl text-lg leading-relaxed">{area.audience}</p>
+              </div>
             </section>
-          ) : null}
+
+            {gestiones.length > 0 ? (
+              <section aria-label="Destacados del área">
+                <p className="kicker">Destacados</p>
+                <DestacadosCarousel>
+                  {gestiones.map((item) => (
+                    <DestacadoCard key={item.id} item={item} />
+                  ))}
+                </DestacadosCarousel>
+              </section>
+            ) : null}
+          </div>
 
           <section className="lg:col-span-2" aria-labelledby="area-tramites">
             <p className="kicker">Servicios</p>
@@ -221,8 +222,7 @@ export function AreaLanding({
           ) : null}
 
           <aside className="area-consult h-fit lg:col-start-2 lg:row-start-1 bg-white px-5 py-6 sm:px-6 sm:py-7">
-            <p className="kicker">Consultar</p>
-            <p className="mt-3 leading-relaxed">{area.access}</p>
+            <p className="kicker">Información</p>
             {sede.address ? (
               <p className="mt-5 font-bold text-brand-navy">{sede.address}</p>
             ) : null}
