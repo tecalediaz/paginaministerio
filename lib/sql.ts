@@ -3,9 +3,11 @@ import postgres from "postgres";
 
 export type Sql = ReturnType<typeof postgres>;
 
-const globalForSql = globalThis as typeof globalThis & { sqlClients?: Map<string, Sql> };
-const clients = globalForSql.sqlClients ?? new Map<string, Sql>();
-globalForSql.sqlClients = clients;
+const POOL_MAX = 4;
+
+const globalForSql = globalThis as typeof globalThis & { sqlClientsV2?: Map<string, Sql> };
+const clients = globalForSql.sqlClientsV2 ?? new Map<string, Sql>();
+globalForSql.sqlClientsV2 = clients;
 
 /** El pooler de Supabase en 5432 es modo sesión y solo admite 15 clientes. El 6543 es modo transacción. */
 function pooledUrl(connectionString: string) {
@@ -21,7 +23,7 @@ export function sqlFor(url: string): Sql {
   const existing = clients.get(target);
   if (existing) return existing;
   const sql = postgres(target, {
-    max: 1,
+    max: POOL_MAX,
     ssl: "require",
     prepare: false,
     idle_timeout: 5,
