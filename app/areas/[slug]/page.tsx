@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AreaLanding } from "@/components/AreaLanding";
 import { areas, getPublicArea } from "@/content/areas";
+import { getAreaFaqs } from "@/lib/area-faq-query";
 import { getAreaSede } from "@/lib/area-sede";
 import { listPublishedGestionesByArea } from "@/lib/gestiones";
 import { listPublishedTramitesByArea } from "@/lib/tramites";
@@ -33,11 +34,20 @@ export default async function AreaPage({ params }: Props) {
   const area = getPublicArea(slug);
   if (!area) notFound();
 
-  const [gestiones, tramites, sede] = await Promise.all([
+  const [gestiones, tramites, sede, faqs] = await Promise.all([
     listPublishedGestionesByArea(area.slug),
     listPublishedTramitesByArea(area.slug),
     getAreaSede(area.slug),
+    getAreaFaqs(area.slug),
   ]);
 
-  return <AreaLanding area={area} gestiones={gestiones} tramites={tramites} sede={sede} />;
+  return (
+    <AreaLanding
+      area={area}
+      gestiones={gestiones}
+      tramites={tramites}
+      sede={sede}
+      faqs={faqs}
+    />
+  );
 }

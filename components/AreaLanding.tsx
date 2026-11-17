@@ -16,6 +16,7 @@ import type { Area } from "@/content/areas";
 import { photoForArea } from "@/content/home-photos";
 import { getNeed } from "@/content/needs";
 import { site } from "@/content/site";
+import type { PublicAreaFaq } from "@/lib/area-faqs";
 import type { AreaSede } from "@/lib/area-sede";
 import type { Tramite } from "@/lib/tramite";
 import type { Gestion } from "@/lib/gestiones";
@@ -69,16 +70,45 @@ function DestacadoCard({ item }: { item: Gestion }) {
   );
 }
 
+function AreaFaqs({ items }: { items: PublicAreaFaq[] }) {
+  if (items.length === 0) return null;
+
+  return (
+    <section className="mt-6" aria-labelledby="area-faqs">
+      <p
+        id="area-faqs"
+        className="text-xs font-extrabold tracking-[0.16em] text-fg-muted uppercase"
+      >
+        Preguntas frecuentes
+      </p>
+      <div className="mt-3 divide-y divide-line border-t border-b border-line">
+        {items.map((item) => (
+          <details key={item.id} className="py-3">
+            <summary className="cursor-pointer font-bold text-brand-navy">
+              {item.question}
+            </summary>
+            <p className="mt-2 text-sm leading-relaxed whitespace-pre-line text-fg-muted">
+              {item.answer}
+            </p>
+          </details>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function AreaLanding({
   area,
   gestiones,
   tramites,
   sede,
+  faqs,
 }: {
   area: Area;
   gestiones: Gestion[];
   tramites: Tramite[];
   sede: AreaSede;
+  faqs: PublicAreaFaq[];
 }) {
   const photo = photoForArea(area);
   const need = getNeed(area.need);
@@ -232,6 +262,7 @@ export function AreaLanding({
                 </div>
               </div>
             ) : null}
+            <AreaFaqs items={faqs} />
           </aside>
         </div>
       </div>
