@@ -3,19 +3,14 @@ import { notFound } from "next/navigation";
 import { AreaLanding } from "@/components/AreaLanding";
 import { getAreaFaqs } from "@/lib/area-faq-query";
 import { listPublishedGestionesByArea } from "@/lib/gestiones";
-import { getPublicArea, listPublicAreas } from "@/lib/public-area-query";
+import { getPublicArea } from "@/lib/public-area-query";
 import { listPublishedTramitesByArea } from "@/lib/tramites";
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
-export const revalidate = 120;
-
-export async function generateStaticParams() {
-  const areas = await listPublicAreas();
-  return areas.map((area) => ({ slug: area.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;

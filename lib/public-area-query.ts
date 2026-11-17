@@ -171,7 +171,8 @@ const readPublicAreas = cache(async (): Promise<PublicAreaView[]> => {
   if (!url) return [];
   try {
     return await queryPublicAreas(sqlFor(url));
-  } catch {
+  } catch (error) {
+    console.error("No se pudieron leer las áreas", error);
     return [];
   }
 });
