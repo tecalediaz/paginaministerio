@@ -2,7 +2,23 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { validateTramiteForm, type TramiteFormField } from "../lib/tramite-form";
 import * as reception from "../lib/tramite-reception-core";
-import { areas, getPublicArea } from "../content/areas";
+
+const knownAreas = new Set([
+  "deportes",
+  "atencion-sede",
+  "innovacion-publica",
+  "proyectos-especiales",
+  "coprodeso",
+]);
+
+function submit(
+  data: FormData,
+  client: string,
+  secret: string,
+  repository: reception.SubmissionRepository,
+) {
+  return reception.receiveSubmission(data, client, secret, repository, knownAreas);
+}
 
 const fields: TramiteFormField[] = [
   { id: "1", name: "nombre", label: "Nombre", type: "text", required: true },
@@ -48,24 +64,26 @@ test("invalid select values and required fields never produce accepted answers",
 });
 
 test("recipient eligibility uses only published form configuration and known areas", () => {
-  assert.equal(reception.acceptsSubmissions(config), true);
+  assert.equal(reception.acceptsSubmissions(config, knownAreas), true);
   for (const change of [
     { notification_email: null }, { notification_email: "a@example.com\nBcc:x@example.com" },
     { notification_email: "<a@example.com>" }, { notification_email: ".a@example.com" },
     { notification_email: "a..b@example.com" }, { notification_email: "a@example.c" },
     { area_slug: "otra" }, { form_fields: [] }, { kind: "pagos" },
     { published: false }, { archived_at: "2026-09-28" },
-  ]) assert.equal(reception.acceptsSubmissions({ ...config, ...change }), false);
-  assert.equal(reception.resolveSubmissionArea("general"), "atencion-sede");
+  ]) assert.equal(reception.acceptsSubmissions({ ...config, ...change }, knownAreas), false);
+  assert.equal(reception.resolveSubmissionArea("general", knownAreas), "atencion-sede");
+  assert.equal(reception.resolveSubmissionArea("general", new Set()), null);
+  assert.equal(reception.resolveSubmissionArea("otra", knownAreas), null);
 });
 
-test("removing public directory entries preserves routing for existing forms", () => {
-  for (const slug of ["innovacion-publica", "proyectos-especiales", "coprodeso", "atencion-sede"]) {
-    assert.equal(areas.some((area) => area.slug === slug), false);
-    assert.equal(getPublicArea(slug), undefined);
-    assert.equal(reception.resolveSubmissionArea(slug), slug);
-    assert.equal(reception.acceptsSubmissions({ ...config, area_slug: slug }), true);
-  }
+test("a well-formed slug outside the stored set is refused", () => {
+  const known = new Set(["atencion-sede"]);
+  assert.equal(reception.resolveSubmissionArea("deportes", known), null);
+  assert.equal(reception.acceptsSubmissions({ ...config, area_slug: "deportes" }, known), false);
+  assert.equal(reception.resolveSubmissionArea("deportes", knownAreas), "deportes");
+  assert.equal(reception.acceptsSubmissions({ ...config, area_slug: "deportes" }, knownAreas), true);
+  assert.equal(reception.resolveSubmissionArea("../x", knownAreas), null);
 });
 
 test("an attempt is bound to the submitting client and exact submitted answers", () => {
@@ -78,7 +96,7 @@ test("an attempt is bound to the submitting client and exact submitted answers",
 
 test("persistence receives a historical snapshot and authority never comes from client fields", async () => {
   let saved: reception.SubmissionWrite | undefined;
-  const result = await reception.receiveSubmission(form(), "client-a", "secret", {
+  const result = await submit(form(), "client-a", "secret", {
     readAttempt: async () => null,
     readConfig: async () => config,
     persist: async (write) => {
@@ -97,7 +115,7 @@ test("persistence receives a historical snapshot and authority never comes from 
 
 test("DB failure, rate cap, stale config and conflicting attempt never confirm receipt", async () => {
   for (const status of ["rate_limited", "unavailable", "conflict", "configuration_changed"] as const) {
-    const result = await reception.receiveSubmission(form(), "client-a", "secret", {
+    const result = await submit(form(), "client-a", "secret", {
       readAttempt: async () => null,
       readConfig: async () => config,
       persist: async () => ({ status, receipt_id: null }),
@@ -105,7 +123,7 @@ test("DB failure, rate cap, stale config and conflicting attempt never confirm r
     assert.equal(result.ok, false);
     assert.equal(result.receiptId, undefined);
   }
-  const result = await reception.receiveSubmission(form(), "client-a", "secret", {
+  const result = await submit(form(), "client-a", "secret", {
     readAttempt: async () => null,
     readConfig: async () => config,
     persist: async () => { throw new Error("offline"); },
@@ -116,7 +134,7 @@ test("DB failure, rate cap, stale config and conflicting attempt never confirm r
 
 test("an identical committed retry returns its original receipt without exposing answers", async () => {
   const receipt = "6aa2b42c-a2b3-4320-b8f0-6c22ee785e28";
-  const result = await reception.receiveSubmission(form(), "client-a", "secret", {
+  const result = await submit(form(), "client-a", "secret", {
     readAttempt: async () => null,
     readConfig: async () => config,
     persist: async () => ({ status: "replayed", receipt_id: receipt }),
@@ -148,14 +166,14 @@ test("honeypot, malformed attempt and unavailable config block any persistence",
     (data: FormData) => data.set("dni", "12"),
   ]) {
     const data = form(); mutation(data);
-    const result = await reception.receiveSubmission(data, "client-a", "secret", {
+    const result = await submit(data, "client-a", "secret", {
       readAttempt: async () => null,
       readConfig: async () => config,
       persist: async () => { assert.fail("A rejected form must not be persisted"); },
     });
     assert.equal(result.ok, false);
   }
-  const result = await reception.receiveSubmission(form(), "client-a", "secret", {
+  const result = await submit(form(), "client-a", "secret", {
     readAttempt: async () => null,
     readConfig: async () => ({ ...config, notification_email: null }),
     persist: async () => { assert.fail("An unconfigured form must not be persisted"); },
@@ -174,22 +192,22 @@ test("committed retries survive withdrawal and schema edits without accepting ot
       readConfig: async () => current,
       persist: async () => { assert.fail("Existing committed attempts must not insert again"); },
     };
-    assert.deepEqual(await reception.receiveSubmission(form(), "client-a", "secret", repository), { ok: true, errors: {}, receiptId: receipt });
-    const conflict = await reception.receiveSubmission(form(), "client-b", "secret", repository);
+    assert.deepEqual(await submit(form(), "client-a", "secret", repository), { ok: true, errors: {}, receiptId: receipt });
+    const conflict = await submit(form(), "client-b", "secret", repository);
     assert.equal(conflict.ok, false);
     assert.equal(conflict.receiptId, undefined);
     const altered = form(); altered.set("nombre", "Otra persona");
-    assert.equal((await reception.receiveSubmission(altered, "client-a", "secret", repository)).ok, false);
+    assert.equal((await submit(altered, "client-a", "secret", repository)).ok, false);
   }
 });
 
 
 test("automatic booking accepts only reservation kinds and handles full or duplicate slots", async () => {
-  assert.equal(reception.acceptsSubmissions({...config,kind:"turnos"}),true);
-  assert.equal(reception.acceptsSubmissions({...config,kind:"actividad"}),false);
-  assert.equal(reception.acceptsSubmissions({...config,kind:"documentos"}),false);
+  assert.equal(reception.acceptsSubmissions({...config,kind:"turnos"}, knownAreas),true);
+  assert.equal(reception.acceptsSubmissions({...config,kind:"actividad"}, knownAreas),false);
+  assert.equal(reception.acceptsSubmissions({...config,kind:"documentos"}, knownAreas),false);
   for (const status of ["full","already_booked"] as const) {
-    const result = await reception.receiveSubmission(form(), "test", "x".repeat(32), {
+    const result = await submit(form(), "test", "x".repeat(32), {
       readAttempt: async()=>null, readConfig: async()=>({...config,kind:"turnos"}),
       persist: async()=>({status,receipt_id:null}),
     });
@@ -200,9 +218,9 @@ test("automatic booking accepts only reservation kinds and handles full or dupli
 });
 
 test("registration reports full, closed, scheduled and duplicate outcomes without confirming a receipt", async () => {
-  assert.equal(reception.acceptsSubmissions({ ...config, kind: "inscripcion" }), true);
+  assert.equal(reception.acceptsSubmissions({ ...config, kind: "inscripcion" }, knownAreas), true);
   for (const status of ["registration_full", "registration_closed", "registration_not_open", "already_registered"] as const) {
-    const result = await reception.receiveSubmission(form(), "test", "x".repeat(32), {
+    const result = await submit(form(), "test", "x".repeat(32), {
       readAttempt: async () => null, readConfig: async () => ({ ...config, kind: "inscripcion" }),
       persist: async () => ({ status, receipt_id: null }),
     });

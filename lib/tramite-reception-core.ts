@@ -1,9 +1,11 @@
 import { createHmac, randomUUID } from "node:crypto";
-import { getArea } from "../content/areas";
+import { resolveSubmissionArea } from "./public-area";
 import {
   parseTramiteFormFields, validateTramiteForm,
   type TramiteFormField, type TramiteFormState,
 } from "./tramite-form";
+
+export { resolveSubmissionArea };
 
 export type SubmissionConfig = {
   id: string; slug: string; title: string; kind: string | null;
@@ -15,20 +17,15 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 // Same practical address syntax as the CMS's z.email(), without a public dependency.
 const EMAIL = /^(?![.])(?!.*[.][.])[A-Za-z0-9_'+.-]*[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9-]*[.])+[A-Za-z]{2,}$/;
 
-export function resolveSubmissionArea(slug: string): string | null {
-  if (slug === "general") return "atencion-sede";
-  return getArea(slug) ? slug : null;
-}
-
 export function validNotificationEmail(value: unknown): value is string {
   return typeof value === "string" && value.trim().length <= 254 && EMAIL.test(value.trim());
 }
 
 export function acceptsSubmissions(config: Pick<SubmissionConfig,
   "kind" | "published" | "archived_at" | "area_slug" | "notification_email" | "form_fields"
->): boolean {
+>, knownAreas: ReadonlySet<string>): boolean {
   return config.published === true && config.archived_at === null && ["form", "inscripcion", "turnos"].includes(config.kind ?? "") &&
-    resolveSubmissionArea(config.area_slug) !== null && validNotificationEmail(config.notification_email) &&
+    resolveSubmissionArea(config.area_slug, knownAreas) !== null && validNotificationEmail(config.notification_email) &&
     parseTramiteFormFields(config.form_fields).length > 0;
 }
 
@@ -67,7 +64,11 @@ const failed = () => ({ ok: false, errors: { form: "No pudimos confirmar el env√
 
 /** The DB boundary returns only a receipt and a bounded status, never submitted data. */
 export async function receiveSubmission(
-  formData: FormData, client: string, secret: string, repository: SubmissionRepository,
+  formData: FormData,
+  client: string,
+  secret: string,
+  repository: SubmissionRepository,
+  knownAreas: ReadonlySet<string> | Promise<ReadonlySet<string>>,
 ): Promise<TramiteFormState> {
   const slug = formData.get("slug");
   const attempt = formData.get("idempotency_key");
@@ -88,8 +89,8 @@ export async function receiveSubmission(
       if (identity.fingerprint !== previous.request_fingerprint) return failed();
       return { ok: true, errors: {}, receiptId: previous.id };
     }
-    const config = await repository.readConfig(slug);
-    if (!config || !acceptsSubmissions(config)) return unavailable();
+    const [config, known] = await Promise.all([repository.readConfig(slug), knownAreas]);
+    if (!config || !acceptsSubmissions(config, known)) return unavailable();
     const fields = parseTramiteFormFields(config.form_fields);
     const validation = validateTramiteForm(formData, fields);
     if (!validation.ok) return validation;

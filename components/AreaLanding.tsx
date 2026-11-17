@@ -3,21 +3,15 @@ import Link from "next/link";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { DestacadosCarousel } from "@/components/DestacadosCarousel";
 import { LinkedText } from "@/components/LinkedText";
-import { PlaceholderPhoto } from "@/components/PlaceholderPhoto";
 import { SedeHours } from "@/components/SedeHours";
 import {
   SocialLinks,
   SocialNetworkButtons,
-  consultSocialItems,
-  socialItemsFrom,
 } from "@/components/SocialLinks";
 import { TramitePosterCard } from "@/components/TramiteCard";
-import type { Area } from "@/content/areas";
-import { photoForArea } from "@/content/home-photos";
-import { getNeed } from "@/content/needs";
 import { site } from "@/content/site";
 import type { PublicAreaFaq } from "@/lib/area-faqs";
-import type { AreaSede } from "@/lib/area-sede";
+import type { PublicAreaView, PublicSedeView } from "@/lib/public-area";
 import type { Tramite } from "@/lib/tramite";
 import type { Gestion } from "@/lib/gestiones";
 
@@ -97,23 +91,109 @@ function AreaFaqs({ items }: { items: PublicAreaFaq[] }) {
   );
 }
 
+function AreaCover({ src, alt }: { src: string; alt: string }) {
+  if (src.startsWith("/") && !src.startsWith("//")) {
+    return (
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        priority
+        sizes="(min-width: 1120px) 1120px, calc(100vw - 2rem)"
+        className="object-cover object-center"
+      />
+    );
+  }
+
+  return (
+    // Remote catalog cover (R2). Hosts are not known until an area publishes one.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={alt}
+      className="absolute inset-0 h-full w-full object-cover object-center"
+    />
+  );
+}
+
+function AreaBanner({ area }: { area: PublicAreaView }) {
+  return (
+    <figure className="area-banner relative isolate overflow-hidden rounded-xl bg-bg-deep">
+      {area.coverUrl ? <AreaCover src={area.coverUrl} alt={area.name} /> : null}
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-gradient-to-t from-brand-navy/95 via-bg-deep/45 to-bg-deep/15"
+      />
+      <div className="absolute inset-x-0 bottom-0 z-10 px-5 py-5 text-fg-on-dark sm:px-8 sm:py-8">
+        <p className="kicker">
+          {area.kind} · {area.needLabel}
+        </p>
+        <h1 id="area-title" className="area-banner__title">
+          {area.name}
+        </h1>
+      </div>
+    </figure>
+  );
+}
+
+function SedeBlock({
+  sede,
+  areaName,
+  first,
+}: {
+  sede: PublicSedeView;
+  areaName: string;
+  first: boolean;
+}) {
+  return (
+    <div>
+      <p className={`${first ? "mt-5" : "mt-6"} font-bold text-brand-navy`}>{sede.address}</p>
+      <p className="text-fg-muted">{site.contact.city}</p>
+      {sede.hours ? (
+        <div className="mt-4">
+          <p className="text-xs font-extrabold tracking-[0.16em] text-fg-muted uppercase">
+            Horario
+          </p>
+          <SedeHours hours={sede.hours} />
+        </div>
+      ) : null}
+      {sede.mapEmbed ? (
+        <div className="mt-6">
+          <iframe
+            title={`Mapa de la sede de ${sede.name || areaName}`}
+            src={sede.mapEmbed}
+            loading="lazy"
+            className="h-48 w-full border border-line"
+          />
+          {sede.mapOpen ? (
+            <a
+              className="mt-3 inline-flex min-h-11 items-center text-sm font-bold"
+              href={sede.mapOpen}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Abrir mapa
+            </a>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function AreaLanding({
   area,
   gestiones,
   tramites,
-  sede,
   faqs,
 }: {
-  area: Area;
+  area: PublicAreaView;
   gestiones: Gestion[];
   tramites: Tramite[];
-  sede: AreaSede;
   faqs: PublicAreaFaq[];
 }) {
-  const photo = photoForArea(area);
-  const need = getNeed(area.need);
-  const social = socialItemsFrom(area.social);
-  const consultSocial = consultSocialItems(area.social);
+  const showAbout = Boolean(area.summary) || gestiones.length > 0;
+  const showAside = area.sedes.length > 0 || area.social.length > 0 || faqs.length > 0;
 
   return (
     <div className="pt-4 pb-8 sm:pt-6 sm:pb-12">
@@ -127,31 +207,18 @@ export function AreaLanding({
         />
 
         <section className="mt-4 sm:mt-5" aria-labelledby="area-title">
-          <PlaceholderPhoto
-            photo={photo}
-            className="area-banner rounded-xl"
-            sizes="(min-width: 1120px) 1120px, calc(100vw - 2rem)"
-            priority
-            overlayClassName="px-5 py-5 sm:px-8 sm:py-8"
-            overlay={
-              <>
-                <p className="kicker">
-                  {area.kind} · {need.label}
-                </p>
-                <h1 id="area-title" className="area-banner__title">
-                  {area.name}
-                </h1>
-              </>
-            }
-          />
+          <AreaBanner area={area} />
         </section>
 
         <div className="mt-8 grid gap-x-8 gap-y-10 sm:gap-y-14 lg:mt-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(17rem,0.8fr)] lg:items-start lg:gap-x-12">
+          {showAbout ? (
           <div className="flex min-w-0 flex-col gap-10 sm:gap-14 lg:col-start-1 lg:row-start-1">
-            <section aria-label="Información del área">
-              <p className="kicker">El área</p>
-              <p className="area-lead mt-4">{area.summary}</p>
-            </section>
+            {area.summary ? (
+              <section aria-label="Información del área">
+                <p className="kicker">El área</p>
+                <p className="area-lead mt-4">{area.summary}</p>
+              </section>
+            ) : null}
 
             {gestiones.length > 0 ? (
               <section aria-label="Destacados del área">
@@ -164,6 +231,7 @@ export function AreaLanding({
               </section>
             ) : null}
           </div>
+          ) : null}
 
           <section className="lg:col-span-2" aria-labelledby="area-tramites">
             <p className="kicker">Servicios</p>
@@ -200,7 +268,7 @@ export function AreaLanding({
             )}
           </section>
 
-          {social.length > 0 ? (
+          {area.social.length > 0 ? (
             <section className="lg:col-span-2" aria-labelledby="area-redes">
               <p className="kicker">Redes</p>
               <h2
@@ -210,53 +278,30 @@ export function AreaLanding({
                 Redes del área
               </h2>
               <div className="mt-4">
-                <SocialLinks items={social} label={`Redes de ${area.name}`} />
+                <SocialLinks items={area.social} label={`Redes de ${area.name}`} />
               </div>
             </section>
           ) : null}
 
+          {showAside ? (
           <aside className="area-consult h-fit lg:col-start-2 lg:row-start-1 bg-white px-5 py-6 sm:px-6 sm:py-7">
             <p className="kicker">Información</p>
-            {sede.address ? (
-              <p className="mt-5 font-bold text-brand-navy">{sede.address}</p>
-            ) : null}
-            <p className={sede.address ? "text-fg-muted" : "mt-5 text-fg-muted"}>{site.contact.city}</p>
-            {sede.hours ? (
-              <div className="mt-4">
-                <p className="text-xs font-extrabold tracking-[0.16em] text-fg-muted uppercase">
-                  Horario
-                </p>
-                <SedeHours hours={sede.hours} />
-              </div>
-            ) : null}
-            {sede.mapEmbed ? (
-              <div className="mt-6">
-                <iframe
-                  title={`Mapa de la sede de ${area.name}`}
-                  src={sede.mapEmbed}
-                  loading="lazy"
-                  className="h-48 w-full border border-line"
-                />
-                {sede.mapOpen ? (
-                  <a
-                    className="mt-3 inline-flex min-h-11 items-center text-sm font-bold"
-                    href={sede.mapOpen}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Abrir mapa
-                  </a>
-                ) : null}
-              </div>
-            ) : null}
-            {consultSocial.length > 0 ? (
+            {area.sedes.map((sede, index) => (
+              <SedeBlock
+                key={`${sede.address}-${index}`}
+                sede={sede}
+                areaName={area.name}
+                first={index === 0}
+              />
+            ))}
+            {area.social.length > 0 ? (
               <div className="mt-6">
                 <p className="text-xs font-extrabold tracking-[0.16em] text-fg-muted uppercase">
                   Redes
                 </p>
                 <div className="mt-3">
                   <SocialNetworkButtons
-                    items={consultSocial}
+                    items={area.social}
                     label={`Redes de ${area.name}`}
                   />
                 </div>
@@ -264,6 +309,7 @@ export function AreaLanding({
             ) : null}
             <AreaFaqs items={faqs} />
           </aside>
+          ) : null}
         </div>
       </div>
     </div>

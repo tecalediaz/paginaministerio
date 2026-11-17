@@ -1,4 +1,3 @@
-import { areas, getArea } from "@/content/areas";
 import type { NeedId } from "@/content/needs";
 import type { TramiteFormField } from "@/lib/tramite-form";
 
@@ -14,11 +13,19 @@ export type TramiteImage = {
 
 export type TramiteKind = "form" | "inscripcion" | "pagos" | "turnos" | "documentos";
 
+export type TramiteArea = {
+  slug: string;
+  name: string;
+  kind: string;
+  need: NeedId;
+};
+
 export type Tramite = {
   slug: string;
   title: string;
   need: NeedId;
   areaSlug: string;
+  area: TramiteArea;
   kind: TramiteKind;
   image?: TramiteImage;
   summary: string;
@@ -35,9 +42,5 @@ export type Tramite = {
 };
 
 export function areaOf(tramite: Tramite) {
-  return (
-    getArea(tramite.areaSlug) ??
-    getArea(FALLBACK_AREA_SLUG) ??
-    areas[0]
-  );
+  return tramite.area;
 }

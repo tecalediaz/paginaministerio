@@ -4,6 +4,7 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { site } from "@/content/site";
 import { antenna } from "@/lib/fonts";
+import { listPublicAreas } from "@/lib/public-area-query";
 import "./globals.css";
 
 const ogImage = {
@@ -50,7 +51,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const areas = await listPublicAreas();
   return (
     <html lang="es-AR" className={`${antenna.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
@@ -61,7 +63,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <main id="contenido" className="flex-1">
           {children}
         </main>
-        <Footer />
+        <Footer areas={areas.map((area) => ({ slug: area.slug, name: area.name }))} />
       </body>
     </html>
   );
