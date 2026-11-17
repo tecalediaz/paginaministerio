@@ -1,15 +1,16 @@
 import "server-only";
 import { registrationAvailability } from "./registration-availability";
 import { bookingAvailability } from "./booking-availability";
-import { sqlFor } from "@/lib/sql";
+import { sqlFor, type Sql } from "@/lib/sql";
 import { unstable_noStore as noStore } from "next/cache";
-import { getArea } from "@/content/areas";
 import { needs, type NeedId } from "@/content/needs";
 import { parseTramiteFormFields } from "@/lib/tramite-form";
+import { resolveSubmissionArea } from "@/lib/public-area";
 import {
   FALLBACK_AREA_SLUG,
   FALLBACK_NEED,
   type Tramite,
+  type TramiteArea,
 } from "@/lib/tramite";
 
 export type { Tramite, TramiteImage } from "@/lib/tramite";
@@ -19,17 +20,28 @@ function isNeedId(value: string): value is NeedId {
   return needs.some((item) => item.id === value);
 }
 
-function isAreaSlug(value: string) {
-  return getArea(value) !== undefined;
+type StoredArea = TramiteArea;
+
+function resolveAreaSlug(value: string, known: ReadonlySet<string>) {
+  return resolveSubmissionArea(value, known) ?? (known.has(FALLBACK_AREA_SLUG) ? FALLBACK_AREA_SLUG : value);
 }
 
-function resolveAreaSlug(value: string) {
-  return isAreaSlug(value) ? value : FALLBACK_AREA_SLUG;
-}
-
-function resolveNeed(need: string, areaSlug: string): NeedId {
+function resolveNeed(need: string, area: StoredArea | undefined): NeedId {
   if (isNeedId(need)) return need;
-  return getArea(areaSlug)?.need ?? FALLBACK_NEED;
+  return area?.need ?? FALLBACK_NEED;
+}
+
+async function readStoredAreas(sql: Sql): Promise<Map<string, StoredArea>> {
+  const rows = await sql<{ slug: string; name: string; kind: string; need: string }[]>`
+    SELECT slug, name, kind, need FROM site_areas
+  `;
+  const areas = new Map<string, StoredArea>();
+  for (const row of rows) {
+    if (typeof row.slug !== "string" || typeof row.name !== "string" || typeof row.kind !== "string") continue;
+    if (!isNeedId(row.need)) continue;
+    areas.set(row.slug, { slug: row.slug, name: row.name, kind: row.kind, need: row.need });
+  }
+  return areas;
 }
 
 function isTramiteRow(row: Record<string, unknown>): row is {
@@ -77,9 +89,12 @@ function mapRow(row: {
   booking_counts: Record<string, number> | null;
   registration_count: number;
   accepts_submissions: boolean;
-}): Tramite {
-  const areaSlug = resolveAreaSlug(row.area_slug);
-  const need = resolveNeed(row.need, areaSlug);
+}, directory: Map<string, StoredArea>): Tramite {
+  const known = new Set(directory.keys());
+  const areaSlug = resolveAreaSlug(row.area_slug, known);
+  const stored = directory.get(areaSlug);
+  const need = resolveNeed(row.need, stored);
+  const area: TramiteArea = stored ?? { slug: areaSlug, name: areaSlug, kind: "", need };
   const imageUrl = row.image_url?.trim() ?? "";
   const kind = ["inscripcion", "turnos", "documentos", "pagos"].includes(row.kind ?? "") ? row.kind as Tramite["kind"] : "form";
   const formFields = kind === "pagos" ? [] : parseTramiteFormFields(row.form_fields);
@@ -99,6 +114,7 @@ function mapRow(row: {
     title: row.title,
     need,
     areaSlug,
+    area,
     kind,
     image: imageUrl
       ? { src: imageUrl, alt: row.image_alt?.trim() || row.title }
@@ -112,7 +128,7 @@ function mapRow(row: {
     fullBookingDates,
     documents: documentLinks(row.type_config),
     acceptsSubmissions: ["form", "inscripcion", "turnos"].includes(row.kind ?? "") && (!registration || registration.status === "open") && row.accepts_submissions === true &&
-      formFields.length > 0 && (!["turnos"].includes(kind) || Boolean(formFields.find(f => f.name === "reserva")?.options?.length)) && (isAreaSlug(row.area_slug) || row.area_slug === "general"),
+      formFields.length > 0 && (!["turnos"].includes(kind) || Boolean(formFields.find(f => f.name === "reserva")?.options?.length)) && resolveSubmissionArea(row.area_slug, known) !== null,
   };
 }
 
@@ -129,6 +145,7 @@ async function queryPublished(
   areaSlug?: string,
 ): Promise<Tramite[]> {
   const sql = sqlFor(url);
+  const areasPromise = readStoredAreas(sql).catch(() => new Map<string, StoredArea>());
   const result = await sql`
     SELECT slug, title, need, area_slug, kind, image_url, image_alt,
       summary, who, how, requirements, notes, form_fields, type_config,
@@ -142,7 +159,8 @@ async function queryPublished(
     ORDER BY sort_order ASC, published_at DESC NULLS LAST, created_at DESC
   `;
 
-  const mapped = rowsOf(result).filter(isTramiteRow).map(mapRow);
+  const directory = await areasPromise;
+  const mapped = rowsOf(result).filter(isTramiteRow).map((row) => mapRow(row, directory));
   if (!areaSlug) return mapped;
   return mapped.filter((item) => item.areaSlug === areaSlug);
 }
@@ -179,6 +197,7 @@ export async function getPublishedTramite(
 
   try {
     const sql = sqlFor(url);
+    const areasPromise = readStoredAreas(sql).catch(() => new Map<string, StoredArea>());
     const result = await sql`
       SELECT slug, title, need, area_slug, kind, image_url, image_alt,
         summary, who, how, requirements, notes, form_fields, type_config,
@@ -191,8 +210,9 @@ export async function getPublishedTramite(
       WHERE published = true AND archived_at IS NULL AND deleted_at IS NULL AND slug = ${slug}
       LIMIT 1
     `;
+    const directory = await areasPromise;
     const row = rowsOf(result).find(isTramiteRow);
-    return row ? mapRow(row) : null;
+    return row ? mapRow(row, directory) : null;
   } catch (error) {
     console.error("No se pudieron leer los trámites", error);
     return null;

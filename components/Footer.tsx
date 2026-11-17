@@ -1,9 +1,12 @@
 import Link from "next/link";
-import { areas } from "@/content/areas";
 import { formatContactHours, site } from "@/content/site";
 import { SocialLinks } from "@/components/SocialLinks";
 
-export function Footer() {
+export function Footer({
+  areas,
+}: {
+  areas: readonly { slug: string; name: string }[];
+}) {
   return (
     <footer className="mt-auto bg-bg-deep text-fg-on-dark">
       <div className="shell grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-3">

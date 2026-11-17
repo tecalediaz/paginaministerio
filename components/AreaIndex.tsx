@@ -2,27 +2,21 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
-import { areas, type Area } from "@/content/areas";
-import { searchCatalog } from "@/lib/search";
+import { KIND_ORDER } from "@/content/areas";
+import { type NeedId } from "@/content/needs";
+import { searchCatalog, type SearchArea } from "@/lib/search";
 
-const KIND_ORDER = [
-  "Secretaría",
-  "Subsecretaría",
-  "Dirección general",
-  "Consejo",
-  "Coordinación",
-  "Mesa de entrada",
-] as const;
+type DirectoryArea = SearchArea & { need: NeedId };
 
-function groupAreasByKind(list: Area[]) {
-  const buckets = new Map<string, Area[]>();
+function groupAreasByKind(list: readonly DirectoryArea[]) {
+  const buckets = new Map<string, DirectoryArea[]>();
   for (const area of list) {
     const current = buckets.get(area.kind);
     if (current) current.push(area);
     else buckets.set(area.kind, [area]);
   }
 
-  const ordered: { kind: string; items: Area[] }[] = [];
+  const ordered: { kind: string; items: DirectoryArea[] }[] = [];
   for (const kind of KIND_ORDER) {
     const items = buckets.get(kind);
     if (!items) continue;
@@ -60,6 +54,7 @@ function DirectoryChevron() {
 }
 
 type AreaIndexProps = {
+  areas: readonly DirectoryArea[];
   headingLevel?: "h1" | "h2";
   title?: string;
   titleHref?: string;
@@ -70,6 +65,7 @@ type AreaIndexProps = {
 };
 
 export function AreaIndex({
+  areas,
   headingLevel = "h2",
   title = "Áreas",
   titleHref,
@@ -82,8 +78,8 @@ export function AreaIndex({
   const [openSlug, setOpenSlug] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const list = useMemo(
-    () => (searchable ? searchCatalog(query).areas : areas),
-    [query, searchable],
+    () => (searchable ? searchCatalog(query, [], undefined, areas).areas : areas),
+    [areas, query, searchable],
   );
   const groups = groupAreasByKind(list);
   const Heading = headingLevel;
@@ -215,13 +211,15 @@ export function AreaIndex({
                         <span className="block text-pretty font-bold group-hover:text-accent-warm">
                           {area.name}
                         </span>
-                        <span className="area-index__reveal">
-                          <span className="area-index__reveal-inner">
-                            <span className="area-index__summary">
-                              {area.summary}
+                        {area.summary ? (
+                          <span className="area-index__reveal">
+                            <span className="area-index__reveal-inner">
+                              <span className="area-index__summary">
+                                {area.summary}
+                              </span>
                             </span>
                           </span>
-                        </span>
+                        ) : null}
                       </Link>
                     </li>
                   ))}

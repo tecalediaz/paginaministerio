@@ -5,14 +5,20 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { PlaceholderPhoto } from "@/components/PlaceholderPhoto";
 import { needPhotos } from "@/content/home-photos";
 import { needs } from "@/content/needs";
-import { searchCatalog } from "@/lib/search";
+import { searchCatalog, type SearchArea } from "@/lib/search";
 import type { Tramite } from "@/lib/tramite";
 
-export function NeedExplorer({ tramites }: { tramites: Tramite[] }) {
+export function NeedExplorer({
+  tramites,
+  areas = [],
+}: {
+  tramites: Tramite[];
+  areas?: readonly SearchArea[];
+}) {
   const [query, setQuery] = useState("");
   const { areas: areaHits, tramites: tramiteHits } = useMemo(
-    () => searchCatalog(query, tramites),
-    [query, tramites],
+    () => searchCatalog(query, tramites, undefined, areas),
+    [areas, query, tramites],
   );
   const searching = query.trim().length > 0;
   const noHits = areaHits.length === 0 && tramiteHits.length === 0;

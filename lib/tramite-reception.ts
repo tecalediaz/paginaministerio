@@ -1,6 +1,6 @@
 import "server-only";
 import { isIP } from "node:net";
-import { sqlFor } from "@/lib/sql";
+import { sqlFor, type Sql } from "@/lib/sql";
 import {
   receiveSubmission, type SubmissionConfig, type SubmissionPersistenceResult,
 } from "./tramite-reception-core";
@@ -22,6 +22,7 @@ export async function saveTramiteSubmission(
     ok: false, errors: { form: "El envío de solicitudes no está disponible en este momento. Podés consultar por teléfono, WhatsApp o en sede." },
   };
   const sql = sqlFor(url);
+  const knownAreas = readKnownAreaSlugs(sql);
   return receiveSubmission(formData, submissionClient(headers), secret, {
     async readAttempt(key) {
       const rows = await sql`SELECT id, fields_snapshot, request_fingerprint FROM site_tramite_submissions WHERE idempotency_key = ${key}::uuid LIMIT 1`;
@@ -45,5 +46,18 @@ export async function saveTramiteSubmission(
       `;
       return (rows[0] as SubmissionPersistenceResult | undefined) ?? { status: "unavailable", receipt_id: null };
     },
-  });
+  }, knownAreas);
+}
+
+async function readKnownAreaSlugs(sql: Sql): Promise<ReadonlySet<string>> {
+  try {
+    const rows = await sql<{ slug: string }[]>`SELECT slug FROM site_areas`;
+    const known = new Set<string>();
+    for (const row of rows) {
+      if (typeof row.slug === "string" && row.slug.length > 0) known.add(row.slug);
+    }
+    return known;
+  } catch {
+    return new Set();
+  }
 }

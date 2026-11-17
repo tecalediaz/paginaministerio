@@ -66,3 +66,6 @@ next-env.d.ts
 
 # editor local
 .vscode/
+
+# Worktrees locales
+.worktrees/

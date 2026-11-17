@@ -8,14 +8,17 @@ import { SloganStrip } from "@/components/SloganStrip";
 import { sedePhoto } from "@/content/home-photos";
 import { site } from "@/content/site";
 import { listPublishedGestiones } from "@/lib/gestiones";
+import { toDirectoryArea } from "@/lib/public-area";
+import { listPublicAreas } from "@/lib/public-area-query";
 import { listPublishedTramites } from "@/lib/tramites";
 
 export const revalidate = 120;
 
 export default async function Home() {
-  const [gestiones, tramites] = await Promise.all([
+  const [gestiones, tramites, areas] = await Promise.all([
     listPublishedGestiones(),
     listPublishedTramites(),
+    listPublicAreas(),
   ]);
 
   return (
@@ -50,11 +53,11 @@ export default async function Home() {
       <SloganStrip />
 
       <section className="shell py-10 sm:py-14">
-        <NeedExplorer tramites={tramites} />
+        <NeedExplorer tramites={tramites} areas={areas.map(toDirectoryArea)} />
       </section>
 
       <section className="shell py-10 sm:py-14">
-        <AreaIndex />
+        <AreaIndex areas={areas.map(toDirectoryArea)} />
       </section>
 
       <GestionStories items={gestiones} />
