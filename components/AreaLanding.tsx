@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { DestacadosCarousel } from "@/components/DestacadosCarousel";
+import { LinkedText } from "@/components/LinkedText";
 import { PlaceholderPhoto } from "@/components/PlaceholderPhoto";
 import { SedeHours } from "@/components/SedeHours";
 import {
@@ -48,55 +49,22 @@ function DestacadoMedia({ src, alt }: { src: string; alt: string }) {
 }
 
 function DestacadoCard({ item }: { item: Gestion }) {
-  const media = (
-    <div className="relative aspect-[16/10] overflow-hidden">
-      <DestacadoMedia src={item.imageUrl} alt={item.imageAlt} />
-      <div
-        aria-hidden
-        className="absolute inset-0 bg-gradient-to-t from-brand-navy/95 via-bg-deep/40 to-bg-deep/10"
-      />
-      <div className="absolute inset-x-0 bottom-0 z-10 px-4 py-3.5 sm:px-5 sm:py-4">
-        <h3 className="text-lg font-bold text-pretty text-fg-on-dark sm:text-xl">
+  return (
+    <article className="overflow-hidden rounded-xl bg-white">
+      <div className="relative aspect-[3/4] overflow-hidden">
+        <DestacadoMedia src={item.imageUrl} alt={item.imageAlt || item.title} />
+      </div>
+      <div className="px-4 py-3.5 sm:px-5 sm:py-4">
+        <h3 className="text-lg font-bold text-pretty text-brand-navy sm:text-xl">
           {item.title}
         </h3>
+        {item.summary ? (
+          <LinkedText
+            text={item.summary}
+            className="mt-2 text-sm leading-relaxed text-fg-muted"
+          />
+        ) : null}
       </div>
-    </div>
-  );
-
-  const body = item.summary ? (
-    <p className="px-4 py-3.5 text-sm leading-relaxed text-fg-muted sm:px-5">
-      {item.summary}
-    </p>
-  ) : null;
-
-  const cardClass = "block overflow-hidden rounded-xl bg-white";
-
-  if (!item.href) {
-    return (
-      <article className={cardClass}>
-        {media}
-        {body}
-      </article>
-    );
-  }
-
-  if (item.href.startsWith("/")) {
-    return (
-      <article>
-        <Link href={item.href} className={cardClass}>
-          {media}
-          {body}
-        </Link>
-      </article>
-    );
-  }
-
-  return (
-    <article>
-      <a href={item.href} className={cardClass}>
-        {media}
-        {body}
-      </a>
     </article>
   );
 }
@@ -153,10 +121,6 @@ export function AreaLanding({
             <section aria-label="Información del área">
               <p className="kicker">El área</p>
               <p className="area-lead mt-4">{area.summary}</p>
-              <div className="mt-8 border-t border-line pt-8">
-                <h2 className="kicker">A quién atiende</h2>
-                <p className="mt-3 max-w-2xl text-lg leading-relaxed">{area.audience}</p>
-              </div>
             </section>
 
             {gestiones.length > 0 ? (

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { LinkedText } from "@/components/LinkedText";
 import type { Gestion } from "@/lib/gestiones";
 
 const AUTOPLAY_MS = 7000;
@@ -67,7 +68,10 @@ function CopyInner({ item }: { item: Gestion }) {
     <>
       {title}
       {item.summary ? (
-        <p className="mt-3 text-sm leading-relaxed text-fg-muted sm:text-base">{item.summary}</p>
+        <LinkedText
+          text={item.summary}
+          className="mt-3 text-sm leading-relaxed text-fg-muted sm:text-base"
+        />
       ) : null}
     </>
   );
